@@ -62,16 +62,21 @@
         p { margin: 10px 0; line-height: 1.5; }
 
         /* Feedback Styling */
-        #feedback { font-size: 24px; font-weight: bold; margin-top: 20px; height: 30px; }
-        .correct { color: green; }
-        .incorrect { color: red; }
+        /* Make feedback hidden by default */
+        #feedback { font-size: 24px; font-weight: bold; margin-top: 20px; height: 30px; display: none; }
+        #feedback.visible { display: block; } /* Use a class to show */
+        #feedback.correct { color: green; }
+        #feedback.incorrect { color: red; }
         .error-message { color: red; font-size: 14px; margin-top: 5px; font-weight: bold; }
 
         /* Touch Control Buttons Styling */
         #touchControls {
-            display: flex; justify-content: center; flex-wrap: wrap; width: 100%;
+            display: none; /* Hidden by default */
+            justify-content: center; flex-wrap: wrap; width: 100%;
             margin-top: 30px; gap: 15px;
         }
+        #touchControls.visible { display: flex; } /* Use a class to show */
+
         #touchControls button {
             font-size: 20px; padding: 15px 25px; margin: 0 10px; cursor: pointer;
             border: 2px solid #007bff; background-color: #e7f1ff; color: #333;
@@ -85,6 +90,15 @@
             font-size: 48px; font-weight: bold; margin: 20px 0; color: #dc3545;
          }
          #eyesClosedText { font-size: 18px; margin-bottom: 20px;}
+
+         /* Fixation visibility */
+         #fixation { display: none; } /* Hidden by default */
+         #fixation.visible { display: block; } /* Use a class to show */
+
+         /* Stimulus visibility */
+         #stimulus { display: none; } /* Hidden by default */
+         #stimulus.visible { display: block; } /* Use a class to show */
+
 
     </style>
 </head>
@@ -157,7 +171,9 @@
 
         <div id="task" class="screen">
             <div id="fixation">+</div>
-            <div id="stimulus"></div> <div id="feedback"></div> <div id="touchControls">
+            <div id="stimulus"></div>
+            <div id="feedback"></div>
+            <div id="touchControls">
                 <button id="touchButtonF">A / K (F)</button>
                 <button id="touchButtonJ">L / R (J)</button>
             </div>
@@ -168,12 +184,12 @@
              <p>Here is a summary of your results:</p>
              <div id="summaryResults"></div>
              <button id="restartBtn">Restart Experiment</button>
-        </div>
+             </div>
 
     </div> <script>
         // --- Get References ---
-        const containerDiv = document.querySelector('.container'); // Get container for screen switching
-        const screens = document.querySelectorAll('.container .screen'); // Get all screens
+        const containerDiv = document.querySelector('.container');
+        const screens = document.querySelectorAll('.container .screen');
         const instructionsDiv = document.getElementById('instructions');
         const participantInfoDiv = document.getElementById('participantInfo');
         const eyesClosedScreenDiv = document.getElementById('eyesClosedScreen');
@@ -198,87 +214,79 @@
         const continueAfterRestBtn = document.getElementById('continueAfterRestBtn');
         const countdownError = document.getElementById('countdownError');
 
-        const instructionListReminder = document.getElementById('instructionListReminder'); // For pre-task screen
+        const instructionListReminder = document.getElementById('instructionListReminder');
         const startFlankerTaskBtn = document.getElementById('startFlankerTaskBtn');
 
         const fixationDiv = document.getElementById('fixation');
         const stimulusDiv = document.getElementById('stimulus');
         const feedbackDiv = document.getElementById('feedback');
-        // noiseOverlay reference removed
         const touchControlsDiv = document.getElementById('touchControls');
         const touchButtonF = document.getElementById('touchButtonF');
         const touchButtonJ = document.getElementById('touchButtonJ');
 
         const summaryResultsDiv = document.getElementById('summaryResults');
         const restartBtn = document.getElementById('restartBtn');
+        // developerDataButton reference removed
 
         // --- State Variables ---
         let trials = [];
         let currentTrialIndex = 0;
         let results = [];
         let summaryMetrics = {};
-        let participantData = {}; // Will include id, age, gender, group
+        let participantData = {};
         let stimulusStartTime;
-        let experimentStartTime; // Start time for the actual Flanker Task part
+        let experimentStartTime;
         let responseListener = null;
         let trialTimeoutId = null;
-        let countdownIntervalId = null; // For the 3-minute timer
+        let countdownIntervalId = null;
 
         // --- Timing Parameters ---
         const FIXATION_DURATION = 500;
         const FEEDBACK_DURATION = 750;
         const ITI = 500;
         const MAX_RESPONSE_TIME = 1500;
-        const EYES_CLOSED_DURATION_SECONDS = 180; // 3 minutes
+        const EYES_CLOSED_DURATION_SECONDS = 180;
 
         // --- Configuration ---
-        // IMPORTANT: Replace with YOUR actual Google Apps Script URL(s)
-        // You might use one URL for both, or separate URLs if you prefer.
-        // The Apps Script needs logic to handle both types of POST requests.
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzI9_zYE-vhFFWxM1OQw7Bnrci6CNacxAHY3oWCCmZXHQzF2KSGaJhJcs48zje63mva/exec"; // Replace!
+        // IMPORTANT: Replace with YOUR actual Google Apps Script URL
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzI9_zYE-vhFFWxM1OQw7Bnrci6CNacxAHY3oWCCmZXHQzF2KSGaJhJcs48zje63mva/exec"; // Replace if needed!
 
         // --- Utility Functions ---
-        function shuffleArray(array) { /* ... (same as before) ... */
-             for (let i = array.length - 1; i > 0; i--) {
-                 const j = Math.floor(Math.random() * (i + 1));
-                 [array[i], array[j]] = [array[j], array[i]];
-             }
-             return array;
-         }
-        function calculateSD(data, mean) { /* ... (same as before) ... */
+        function shuffleArray(array) { /* ... (no changes needed) ... */
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        function calculateSD(data, mean) { /* ... (no changes needed) ... */
             if (!data || data.length < 2) return 0;
-             const N = data.length;
-             const variance = data.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / (N - 1);
-             return Math.sqrt(variance);
+            const N = data.length;
+            const variance = data.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / (N - 1);
+            return Math.sqrt(variance);
         }
-        function calculateMedian(data) { /* ... (same as before) ... */
+        function calculateMedian(data) { /* ... (no changes needed) ... */
             if (!data || data.length === 0) return 0;
-             const sortedData = [...data].sort((a, b) => a - b);
-             const mid = Math.floor(sortedData.length / 2);
-             return sortedData.length % 2 === 0 ? (sortedData[mid - 1] + sortedData[mid]) / 2 : sortedData[mid];
+            const sortedData = [...data].sort((a, b) => a - b);
+            const mid = Math.floor(sortedData.length / 2);
+            return sortedData.length % 2 === 0 ? (sortedData[mid - 1] + sortedData[mid]) / 2 : sortedData[mid];
         }
-
-        // Modified for new 'noise' condition - only applies spacing if flankers exist
-        function formatStimulus(stimulusString, spacingType, isNoiseTrial) {
-            if (!isNoiseTrial || !stimulusString) { // No noise or empty string
-                // Ensure single letter is centered - pad with spaces if needed
-                // Simple approach: just return the single letter
+        function formatStimulus(stimulusString, spacingType, isNoiseTrial) { /* ... (no changes needed) ... */
+            if (!isNoiseTrial || !stimulusString) {
                 return stimulusString || '';
             }
-
-            // Apply spacing only if it's a noise trial with flankers
             const letters = stimulusString.split('');
             let space = '';
             switch (spacingType) {
-                case 'double': space = '\u00A0'; break; // Non-breaking space
-                case 'triple': space = '\u00A0\u00A0'; break; // Two non-breaking spaces
-                default: space = ''; break; // Single spacing (no extra space)
+                case 'double': space = '\u00A0'; break;
+                case 'triple': space = '\u00A0\u00A0'; break;
+                default: space = ''; break;
             }
             return letters.join(space);
         }
 
-        // Function to switch between screens
-        function showScreen(screenId) {
+        // --- Screen Switching ---
+        function showScreen(screenId) { /* ... (no changes needed) ... */
              console.log("Switching to screen:", screenId);
              screens.forEach(screen => {
                  if (screen.id === screenId) {
@@ -289,17 +297,13 @@
              });
          }
 
-        // --- Define Trials (Modified for Noise Condition & Trial Count) ---
+        // --- Define Trials ---
         function setupTrials() {
-            const letters = { set1: ['A', 'K'], set2: ['L', 'R'] }; // Target Sets
-            // Condition Definitions:
-            // 'noise:no' = target letter only
-            // 'noise:yes' = target + flankers (congruent/incongruent)
-            // 'spacing' only applies meaningfully when noise=yes
+            const letters = { set1: ['A', 'K'], set2: ['L', 'R'] };
             const conditions = {
-                congruency: ['congruent', 'incongruent', 'neutral'], // Added neutral for no-noise case
+                congruency: ['congruent', 'incongruent', 'neutral'],
                 noise: ['no', 'yes'],
-                spacing: ['single', 'double', 'triple', 'N/A'] // Added N/A for no-noise case
+                spacing: ['single', 'double', 'triple', 'N/A']
              };
             const baseTrials = [];
 
@@ -311,34 +315,24 @@
                      const targetLetter = targetSet[Math.floor(Math.random() * targetSet.length)];
 
                      if (noiseType === 'no') {
-                         // NO NOISE condition: Only target letter, neutral congruency, N/A spacing
                          baseTrials.push({
-                             stimulus_base: targetLetter, // Only the target
-                             centerLetter: targetLetter,
-                             correctKey: correctKey,
-                             condition_congruency: 'neutral', // Explicitly neutral
-                             condition_noise: 'no',
-                             condition_spacing: 'N/A', // Spacing not applicable
+                             stimulus_base: targetLetter, centerLetter: targetLetter, correctKey: correctKey,
+                             condition_congruency: 'neutral', condition_noise: 'no', condition_spacing: 'N/A',
                              touchFHandler: null, touchJHandler: null
                          });
                      } else {
-                         // YES NOISE condition: Iterate through congruency and spacing
-                         for (const cong of ['congruent', 'incongruent']) { // Exclude neutral here
-                             for (const spacingType of ['single', 'double', 'triple']) { // Exclude N/A here
+                         for (const cong of ['congruent', 'incongruent']) {
+                             for (const spacingType of ['single', 'double', 'triple']) {
                                  let stimulusString = "";
                                  if (cong === 'congruent') {
                                      stimulusString = targetLetter.repeat(5);
-                                 } else { // incongruent
+                                 } else {
                                      const flankerLetter = flankerSet[Math.floor(Math.random() * flankerSet.length)];
                                      stimulusString = `${flankerLetter}${flankerLetter}${targetLetter}${flankerLetter}${flankerLetter}`;
                                  }
                                  baseTrials.push({
-                                     stimulus_base: stimulusString,
-                                     centerLetter: targetLetter,
-                                     correctKey: correctKey,
-                                     condition_congruency: cong,
-                                     condition_noise: 'yes',
-                                     condition_spacing: spacingType,
+                                     stimulus_base: stimulusString, centerLetter: targetLetter, correctKey: correctKey,
+                                     condition_congruency: cong, condition_noise: 'yes', condition_spacing: spacingType,
                                      touchFHandler: null, touchJHandler: null
                                  });
                              }
@@ -347,250 +341,152 @@
                  }
              }
 
-             // Calculate base trial count: 2 noise types * 2 target sets = 4 basic loops.
-             // No Noise: 4 loops * 1 trial each = 4 base trials
-             // Yes Noise: 4 loops * 2 congruency * 3 spacing = 24 base trials
-             // Total base trials = 4 + 24 = 28.
+            const repeatedTrials = [];
+            // *** FIX 4: Ensure reps is 6 for 168 trials ***
+            const reps = 6; // 28 base conditions * 6 reps = 168 trials
+            console.log(`Base trial types: ${baseTrials.length}. Repetitions: ${reps}. Total trials: ${baseTrials.length * reps}`);
 
-             const repeatedTrials = [];
-             // Target ~150 trials. 150 / 28 ≈ 5.35. Let's use reps = 5 or 6.
-             const reps = 6; // 28 * 6 = 168 trials. Set to 5 for 140 if preferred.
-             console.log(`Base trial types: ${baseTrials.length}. Repetitions: ${reps}. Total trials: ${baseTrials.length * reps}`);
-
-             for (let i = 0; i < reps; i++) {
+            for (let i = 0; i < reps; i++) {
                  repeatedTrials.push(...baseTrials.map(trial => ({ ...trial })));
              }
-             trials = shuffleArray(repeatedTrials);
-             currentTrialIndex = 0;
-             results = []; // Clear previous results
-             console.log(`Trial setup complete: ${trials.length} trials generated.`);
-         }
+            trials = shuffleArray(repeatedTrials);
+            currentTrialIndex = 0;
+            results = [];
+            console.log(`Trial setup complete: ${trials.length} trials generated.`); // Should log 168
+        }
 
 
-        // --- NEW: Send Group 1 Notification ---
-        function sendGroup1Notification() {
+        // --- Group 1 Notification ---
+        function sendGroup1Notification() { /* ... (no changes needed) ... */
             console.log("Group 1 selected. Attempting to send notification trigger.");
             if (!participantData.id) {
                 console.error("Cannot send Group 1 notification without Participant ID.");
-                return; // Don't send if ID is missing
+                return;
             }
-
             const payload = {
-                eventType: 'group1Selection', // Add a flag to identify this type of POST
+                eventType: 'group1Selection',
                 participantId: participantData.id,
                 timestamp: new Date().toISOString(),
-                // Add other participant data if needed by your script
                 age: participantData.age,
                 gender: participantData.gender
              };
-
-             fetch(GOOGLE_SCRIPT_URL, { // Use the same URL or a dedicated one
-                 method: "POST",
-                 headers: { "Content-Type": "application/json" },
-                 body: JSON.stringify(payload),
-                 mode: 'no-cors' // Likely needed for GAS
+            fetch(GOOGLE_SCRIPT_URL, {
+                 method: "POST", headers: { "Content-Type": "application/json" },
+                 body: JSON.stringify(payload), mode: 'no-cors'
              })
-             .then(() => {
-                 console.log("Group 1 notification trigger fetch initiated (mode: no-cors). Check Apps Script logs.");
-                 // No reliable success confirmation here in no-cors mode
-             })
-             .catch(error => {
-                 console.error("❌ Error initiating fetch for Group 1 notification:", error);
-                 // Optionally inform the user, but might be disruptive
-                 // infoErrorDiv.textContent = "Could not send Group 1 notification trigger.";
-             });
+             .then(() => { console.log("Group 1 notification trigger fetch initiated (mode: no-cors). Check Apps Script logs."); })
+             .catch(error => { console.error("❌ Error initiating fetch for Group 1 notification:", error); });
          }
 
-         // --- NEW: Countdown Timer Logic ---
-         function startCountdown(durationSeconds, displayElement, callback) {
-             // Clear any existing interval
-             if (countdownIntervalId) {
-                 clearInterval(countdownIntervalId);
-             }
-             countdownError.textContent = ''; // Clear errors
+         // --- Countdown Timer Logic ---
+         function startCountdown(durationSeconds, displayElement, callback) { /* ... (no changes needed) ... */
+             if (countdownIntervalId) { clearInterval(countdownIntervalId); }
+             countdownError.textContent = '';
              let timer = durationSeconds;
-             displayElement.style.display = 'block'; // Show countdown display
-
+             displayElement.style.display = 'block';
              countdownIntervalId = setInterval(() => {
                  let minutes = parseInt(timer / 60, 10);
                  let seconds = parseInt(timer % 60, 10);
-
                  minutes = minutes < 10 ? "0" + minutes : minutes;
                  seconds = seconds < 10 ? "0" + seconds : seconds;
-
                  displayElement.textContent = minutes + ":" + seconds;
-
                  if (--timer < 0) {
                      clearInterval(countdownIntervalId);
                      countdownIntervalId = null;
                      displayElement.textContent = "00:00";
-                     if (callback) callback(); // Execute callback when done
+                     if (callback) callback();
                  }
              }, 1000);
          }
 
         // --- Experiment Flow Control ---
-
-        // 1. Initial Continue Button
-        continueToInfoBtn.addEventListener('click', () => {
-            showScreen('participantInfo');
-            infoErrorDiv.textContent = ''; // Clear any previous errors
+        continueToInfoBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
+            showScreen('participantInfo'); infoErrorDiv.textContent = '';
         });
-
-        // 2. Group Selection Buttons
-        group1Btn.addEventListener('click', (e) => {
-            selectedGroupInput.value = e.target.dataset.group;
-            group1Btn.classList.add('selected');
-            group2Btn.classList.remove('selected');
-            group1Btn.disabled = true; // Disable after selection
-            group2Btn.disabled = true;
-            console.log("Group selected:", selectedGroupInput.value);
+        group1Btn.addEventListener('click', (e) => { /* ... (no changes needed) ... */
+            selectedGroupInput.value = e.target.dataset.group; group1Btn.classList.add('selected'); group2Btn.classList.remove('selected'); group1Btn.disabled = true; group2Btn.disabled = true; console.log("Group selected:", selectedGroupInput.value);
         });
-        group2Btn.addEventListener('click', (e) => {
-            selectedGroupInput.value = e.target.dataset.group;
-            group2Btn.classList.add('selected');
-            group1Btn.classList.remove('selected');
-            group1Btn.disabled = true; // Disable after selection
-            group2Btn.disabled = true;
-            console.log("Group selected:", selectedGroupInput.value);
+        group2Btn.addEventListener('click', (e) => { /* ... (no changes needed) ... */
+            selectedGroupInput.value = e.target.dataset.group; group2Btn.classList.add('selected'); group1Btn.classList.remove('selected'); group1Btn.disabled = true; group2Btn.disabled = true; console.log("Group selected:", selectedGroupInput.value);
         });
-
-        // 3. Info Form Submission
-        infoForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            infoErrorDiv.textContent = ''; // Clear previous errors
-
-            const id = participantIdInput.value.trim();
-            const age = ageInput.value;
-            const gender = genderInput.value;
-            const group = selectedGroupInput.value;
-
-            // Validation: Check if ID is not empty, age is valid, gender selected, group selected
+        infoForm.addEventListener('submit', (event) => { /* ... (no changes needed) ... */
+            event.preventDefault(); infoErrorDiv.textContent = '';
+            const id = participantIdInput.value.trim(); const age = ageInput.value; const gender = genderInput.value; const group = selectedGroupInput.value;
             if (id && age && parseInt(age) > 0 && gender && group) {
-                participantData = { id: id, age: parseInt(age), gender: gender, group: group };
-                console.log("Participant Info Submitted:", participantData);
-
-                // Send notification only if Group 1 was selected
-                if (group === 'Group 1') {
-                    sendGroup1Notification(); // Asynchronous call
-                }
-
-                // Proceed to the next screen
-                showScreen('eyesClosedScreen');
-                // Reset eyes closed screen state
-                startCountdownBtn.style.display = 'inline-block';
-                startCountdownBtn.disabled = false;
-                continueAfterRestBtn.style.display = 'none';
-                eyesClosedCountdown.style.display = 'none';
-                eyesClosedCountdown.textContent = '';
-                countdownError.textContent = '';
-
+                participantData = { id: id, age: parseInt(age), gender: gender, group: group }; console.log("Participant Info Submitted:", participantData);
+                if (group === 'Group 1') { sendGroup1Notification(); }
+                showScreen('eyesClosedScreen'); startCountdownBtn.style.display = 'inline-block'; startCountdownBtn.disabled = false; continueAfterRestBtn.style.display = 'none'; eyesClosedCountdown.style.display = 'none'; eyesClosedCountdown.textContent = ''; countdownError.textContent = '';
             } else {
-                let errorMsg = "Please correct the following: ";
-                if (!id) errorMsg += "Participant ID is required. ";
-                if (!age || parseInt(age) <= 0) errorMsg += "Valid age is required. ";
-                if (!gender) errorMsg += "Gender selection is required. ";
-                if (!group) errorMsg += "Group selection is required. ";
-                infoErrorDiv.textContent = errorMsg.trim();
+                let errorMsg = "Please correct the following: "; if (!id) errorMsg += "Participant ID is required. "; if (!age || parseInt(age) <= 0) errorMsg += "Valid age is required. "; if (!gender) errorMsg += "Gender selection is required. "; if (!group) errorMsg += "Group selection is required. "; infoErrorDiv.textContent = errorMsg.trim();
              }
         });
-
-         // 4. Eyes Closed Screen Logic
-         startCountdownBtn.addEventListener('click', () => {
-             startCountdownBtn.disabled = true; // Prevent multiple clicks
-             startCountdownBtn.style.display = 'none'; // Hide start button
-             eyesClosedCountdown.textContent = 'Starting...'; // Initial text
-
-             // Start the countdown
-             startCountdown(EYES_CLOSED_DURATION_SECONDS, eyesClosedCountdown, () => {
-                 // This is the callback function executed when the timer finishes
-                 console.log("Eyes closed period finished.");
-                 eyesClosedText.textContent = "Thank you. Please open your eyes."; // Update text
-                 continueAfterRestBtn.style.display = 'inline-block'; // Show continue button
-                 eyesClosedCountdown.style.color = 'green'; // Optional: change color
-             });
+         startCountdownBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
+             startCountdownBtn.disabled = true; startCountdownBtn.style.display = 'none'; eyesClosedCountdown.textContent = 'Starting...';
+             startCountdown(EYES_CLOSED_DURATION_SECONDS, eyesClosedCountdown, () => { console.log("Eyes closed period finished."); eyesClosedText.textContent = "Thank you. Please open your eyes."; continueAfterRestBtn.style.display = 'inline-block'; eyesClosedCountdown.style.color = 'green'; });
          });
-
-         continueAfterRestBtn.addEventListener('click', () => {
+         continueAfterRestBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
              showScreen('preTaskInstructions');
-             // Optional: copy instructions dynamically if needed
-             // instructionListReminder.innerHTML = document.getElementById('instructionList').innerHTML;
          });
-
-         // 5. Pre-Task Instructions Screen Logic
-         startFlankerTaskBtn.addEventListener('click', () => {
-             console.log("Starting Flanker Task...");
-             showScreen('task');
-             startExperiment(); // Call the function that sets up and runs trials
+         startFlankerTaskBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
+             console.log("Starting Flanker Task..."); showScreen('task'); startExperiment();
          });
 
 
         // --- Flanker Task Core Logic ---
-
-        function startExperiment() {
+        function startExperiment() { /* ... (no changes needed, initial hides are good) ... */
              console.log("Initializing Flanker Task trials for:", participantData);
-             experimentStartTime = performance.now(); // Start timing the task itself
-             setupTrials(); // Generate and shuffle trials
+             experimentStartTime = performance.now();
+             setupTrials();
              if (trials.length > 0) {
-                // Hide unused elements initially
-                stimulusDiv.textContent = '';
-                stimulusDiv.classList.add('hidden'); // Hide stimulus initially
-                feedbackDiv.textContent = '';
-                feedbackDiv.classList.add('hidden'); // Hide feedback initially
-                touchControlsDiv.classList.add('hidden'); // Hide touch controls initially
-                fixationDiv.classList.add('hidden'); // Hide fixation initially
-
-                runTrial(currentTrialIndex); // Start the first trial
-             } else {
-                 console.error("No trials defined! Cannot start task.");
-                 // Optionally show an error message on screen
-             }
+                 stimulusDiv.textContent = ''; stimulusDiv.classList.remove('visible'); // Use class
+                 feedbackDiv.textContent = ''; feedbackDiv.classList.remove('visible'); // Use class
+                 touchControlsDiv.classList.remove('visible'); // Use class
+                 fixationDiv.classList.remove('visible'); // Use class
+                 runTrial(currentTrialIndex);
+             } else { console.error("No trials defined! Cannot start task."); }
          }
 
+        // *** FIX 3: Revised runTrial for Visibility ***
         function runTrial(trialIndex) {
             if (trialIndex >= trials.length) {
-                endExperiment(); // End if no more trials
-                return;
+                endExperiment(); return;
             }
             const currentTrial = trials[trialIndex];
             console.log(`Running Trial ${trialIndex+1}/${trials.length}`, currentTrial);
 
-            // Clear previous timeout
             if (trialTimeoutId) clearTimeout(trialTimeoutId);
             trialTimeoutId = null;
 
-            // Reset visuals for the trial
-            stimulusDiv.classList.add('hidden');
-            feedbackDiv.classList.add('hidden'); // Hide feedback from previous trial
-            touchControlsDiv.classList.add('hidden'); // Hide controls during fixation
-            fixationDiv.textContent = '+';
-            fixationDiv.classList.remove('hidden'); // Show fixation
+            // Explicitly HIDE all dynamic elements at the start of a trial cycle
+            stimulusDiv.classList.remove('visible');
+            feedbackDiv.classList.remove('visible');
+            touchControlsDiv.classList.remove('visible');
 
-            // Disable response buttons during fixation
+            // Show ONLY fixation
+            fixationDiv.textContent = '+';
+            fixationDiv.classList.add('visible');
+
+            // Disable response buttons
             touchButtonF.disabled = true;
             touchButtonJ.disabled = true;
 
-            // --- Schedule Stimulus Presentation ---
+            // Schedule Stimulus Presentation
             setTimeout(() => {
                 try {
-                    fixationDiv.classList.add('hidden'); // Hide fixation
+                    // Hide fixation
+                    fixationDiv.classList.remove('visible');
 
-                    // Format stimulus based on new noise definition
                     const formattedStimulus = formatStimulus(
-                        currentTrial.stimulus_base,
-                        currentTrial.condition_spacing,
-                        currentTrial.condition_noise === 'yes'
+                        currentTrial.stimulus_base, currentTrial.condition_spacing, currentTrial.condition_noise === 'yes'
                     );
                     stimulusDiv.innerHTML = formattedStimulus;
-                    stimulusDiv.classList.remove('hidden'); // Show stimulus
-
-                    // Show touch controls
-                    touchControlsDiv.classList.remove('hidden');
+                    // Show stimulus and controls
+                    stimulusDiv.classList.add('visible');
+                    touchControlsDiv.classList.add('visible');
 
                     stimulusStartTime = performance.now();
 
-                    // --- Add Listeners ---
-                    // Remove previous listeners first (safety check)
+                    // Remove previous listeners
                     if (responseListener) document.removeEventListener('keydown', responseListener);
                     if (currentTrial.touchFHandler) touchButtonF.removeEventListener('click', currentTrial.touchFHandler);
                     if (currentTrial.touchJHandler) touchButtonJ.removeEventListener('click', currentTrial.touchJHandler);
@@ -602,77 +498,54 @@
                     // Add Touch Button Event Listeners
                     currentTrial.touchFHandler = () => handleKeyPress({ key: 'f' }, currentTrial);
                     touchButtonF.addEventListener('click', currentTrial.touchFHandler);
-
                     currentTrial.touchJHandler = () => handleKeyPress({ key: 'j' }, currentTrial);
                     touchButtonJ.addEventListener('click', currentTrial.touchJHandler);
 
-                    // Enable response buttons now that stimulus is visible
+                    // Enable response buttons
                     touchButtonF.disabled = false;
                     touchButtonJ.disabled = false;
 
-                    // Start the response timeout
-                    trialTimeoutId = setTimeout(() => {
-                        handleTimeout(currentTrial);
-                    }, MAX_RESPONSE_TIME);
+                    // Start timeout
+                    trialTimeoutId = setTimeout(() => { handleTimeout(currentTrial); }, MAX_RESPONSE_TIME);
 
-                } catch (error) {
-                    console.error(`Error in runTrial setTimeout callback for trial ${trialIndex}:`, error);
-                    // endExperiment(); // Consider ending gracefully on error
-                 }
+                } catch (error) { console.error(`Error in runTrial setTimeout:`, error); }
             }, FIXATION_DURATION);
         }
 
+        // *** FIX 3: Revised handleKeyPress for Visibility ***
         function handleKeyPress(event, trial) {
-            // Prevent processing if already processed
             if (results.some(r => r.trialIndex === currentTrialIndex)) return;
-
             const key = event.key.toLowerCase();
             if (key === 'f' || key === 'j') {
-                // Clear timeout
-                if (trialTimeoutId) clearTimeout(trialTimeoutId);
-                trialTimeoutId = null;
+                if (trialTimeoutId) clearTimeout(trialTimeoutId); trialTimeoutId = null;
 
-                // --- Remove Listeners ---
-                if (responseListener) document.removeEventListener('keydown', responseListener);
-                responseListener = null;
+                // Remove Listeners
+                if (responseListener) document.removeEventListener('keydown', responseListener); responseListener = null;
                 if (trial.touchFHandler) touchButtonF.removeEventListener('click', trial.touchFHandler);
                 if (trial.touchJHandler) touchButtonJ.removeEventListener('click', trial.touchJHandler);
 
                 // Disable buttons
-                touchButtonF.disabled = true;
-                touchButtonJ.disabled = true;
+                touchButtonF.disabled = true; touchButtonJ.disabled = true;
 
                 const reactionTime = performance.now() - stimulusStartTime;
                 const centerLower = trial.centerLetter.toLowerCase();
                 const expectedKey = (['a', 'k'].includes(centerLower)) ? 'f' : (['l', 'r'].includes(centerLower) ? 'j' : '?');
                 const correct = key === expectedKey;
 
-                // Hide stimulus elements
-                stimulusDiv.classList.add('hidden');
-                touchControlsDiv.classList.add('hidden');
-                // --- ADD THIS LINE ---
-                fixationDiv.classList.add('hidden'); // Hide fixation before showing feedback
-                // --- END OF ADDED LINE ---
+                // Explicitly HIDE stimulus, fixation, controls before showing feedback
+                stimulusDiv.classList.remove('visible');
+                touchControlsDiv.classList.remove('visible');
+                fixationDiv.classList.remove('visible'); // Ensure fixation is hidden
 
-                // --- Record Result ---
+                // Record Result
                 results.push({
-                    participantId: participantData.id,
-                    age: participantData.age,
-                    gender: participantData.gender,
-                    group: participantData.group, // Store selected group
-                    trialIndex: currentTrialIndex,
-                    stimulus: trial.stimulus_base, // Base stimulus string
-                    centerLetter: trial.centerLetter,
-                    congruency: trial.condition_congruency,
-                    noise: trial.condition_noise,
-                    spacing: trial.condition_spacing,
-                    response: key,
-                    correctKey: expectedKey,
-                    correct: correct ? 1 : 0,
-                    latency_ms: reactionTime
+                    participantId: participantData.id, age: participantData.age, gender: participantData.gender, group: participantData.group,
+                    trialIndex: currentTrialIndex, stimulus: trial.stimulus_base, centerLetter: trial.centerLetter,
+                    congruency: trial.condition_congruency, noise: trial.condition_noise, spacing: trial.condition_spacing,
+                    response: key, correctKey: expectedKey, correct: correct ? 1 : 0, latency_ms: reactionTime
                 });
 
-                // Show feedback AFTER hiding other elements
+                // Show feedback
                 showFeedback(correct ? "Correct" : "Incorrect");
 
                 // Schedule next trial
@@ -681,50 +554,36 @@
                     runTrial(currentTrialIndex);
                 }, FEEDBACK_DURATION + ITI);
             }
-        } // End handleKeyPress
+        }
 
+        // *** FIX 3: Revised handleTimeout for Visibility ***
         function handleTimeout(trial) {
             console.warn(`Timeout occurred for trial ${currentTrialIndex}`);
             trialTimeoutId = null;
-            // Prevent processing if already processed
             if (results.some(r => r.trialIndex === currentTrialIndex)) return;
 
-            // --- Remove Listeners ---
-            if (responseListener) document.removeEventListener('keydown', responseListener);
-            responseListener = null;
+            // Remove Listeners
+            if (responseListener) document.removeEventListener('keydown', responseListener); responseListener = null;
             if (trial.touchFHandler) touchButtonF.removeEventListener('click', trial.touchFHandler);
             if (trial.touchJHandler) touchButtonJ.removeEventListener('click', trial.touchJHandler);
 
             // Disable buttons
-            touchButtonF.disabled = true;
-            touchButtonJ.disabled = true;
+            touchButtonF.disabled = true; touchButtonJ.disabled = true;
 
-            // Hide stimulus elements
-            stimulusDiv.classList.add('hidden');
-            touchControlsDiv.classList.add('hidden');
-            // --- ADD THIS LINE ---
-            fixationDiv.classList.add('hidden'); // Hide fixation before showing feedback
-            // --- END OF ADDED LINE ---
+            // Explicitly HIDE stimulus, fixation, controls before showing feedback
+            stimulusDiv.classList.remove('visible');
+            touchControlsDiv.classList.remove('visible');
+            fixationDiv.classList.remove('visible'); // Ensure fixation is hidden
 
-            // --- Record Timeout Result ---
+            // Record Timeout Result
             results.push({
-                participantId: participantData.id,
-                age: participantData.age,
-                gender: participantData.gender,
-                group: participantData.group, // Store selected group
-                trialIndex: currentTrialIndex,
-                stimulus: trial.stimulus_base,
-                centerLetter: trial.centerLetter,
-                congruency: trial.condition_congruency,
-                noise: trial.condition_noise,
-                spacing: trial.condition_spacing,
-                response: 'timeout',
-                correctKey: trial.correctKey,
-                correct: 0,
-                latency_ms: -1
+                participantId: participantData.id, age: participantData.age, gender: participantData.gender, group: participantData.group,
+                trialIndex: currentTrialIndex, stimulus: trial.stimulus_base, centerLetter: trial.centerLetter,
+                congruency: trial.condition_congruency, noise: trial.condition_noise, spacing: trial.condition_spacing,
+                response: 'timeout', correctKey: trial.correctKey, correct: 0, latency_ms: -1
             });
 
-            // Show feedback AFTER hiding other elements
+            // Show feedback
             showFeedback("Too Slow");
 
             // Schedule next trial
@@ -732,64 +591,46 @@
                 currentTrialIndex++;
                 runTrial(currentTrialIndex);
             }, FEEDBACK_DURATION + ITI);
-        } // End handleTimeout
+        }
 
-        function showFeedback(message) { /* ... (same as before, maybe clear text first) ... */
-             feedbackDiv.textContent = ''; // Clear previous
-             feedbackDiv.className = ''; // Clear classes
-             feedbackDiv.classList.remove('hidden'); // Ensure visible
-             if (message === "Correct") {
-                 feedbackDiv.classList.add('correct');
-                 feedbackDiv.textContent = "Correct";
-             } else { // Handles "Incorrect" or "Too Slow"
-                 feedbackDiv.classList.add('incorrect');
-                 feedbackDiv.textContent = message;
-             }
+        // *** FIX 3: Revised showFeedback for Visibility ***
+        function showFeedback(message) {
+            feedbackDiv.textContent = ''; // Clear previous text
+            // Apply classes for styling based on message
+            if (message === "Correct") {
+                feedbackDiv.className = 'feedback visible correct'; // Base, visible, specific
+            } else { // Incorrect or Too Slow
+                feedbackDiv.className = 'feedback visible incorrect'; // Base, visible, specific
+            }
+            feedbackDiv.textContent = message; // Set new text
          }
 
+        // *** FIX 5: Simplified Summary Display in endExperiment ***
         function endExperiment() {
             const experimentEndTime = performance.now();
             const totalElapsedTime_ms = experimentEndTime - experimentStartTime;
             console.log("Flanker Task ended. Calculating metrics...");
-            taskDiv.classList.remove('active'); // Hide task screen
-            touchControlsDiv.classList.add('hidden'); // Ensure buttons hidden
+            taskDiv.classList.remove('active');
+            touchControlsDiv.classList.remove('visible'); // Ensure controls hidden
 
-            // --- Calculate Summary Metrics (adapted for new conditions if needed) ---
+            // --- Calculate Summary Metrics ---
+             // Calculation logic remains the same...
             let correctCount = 0; let totalCorrectRT = 0; let correctRTs = [];
             let noiseYesCorrect = 0, noiseYesTotal = 0; let noiseNoCorrect = 0, noiseNoTotal = 0;
-            // Spacing analysis might need adjustment if 'N/A' is used
-            let spacingSingleCorrect = 0, spacingSingleTotal = 0;
-            let spacingDoubleCorrect = 0, spacingDoubleTotal = 0;
-            let spacingTripleCorrect = 0, spacingTripleTotal = 0;
+            let spacingSingleCorrect = 0, spacingSingleTotal = 0; let spacingDoubleCorrect = 0, spacingDoubleTotal = 0; let spacingTripleCorrect = 0, spacingTripleTotal = 0;
             let timeoutCount = 0;
-
             results.forEach(res => {
-                 // Tally totals for conditions that exist in the results
-                 if (res.noise === 'yes') noiseYesTotal++; else if (res.noise === 'no') noiseNoTotal++;
-                 if (res.spacing === 'single') spacingSingleTotal++;
-                 else if (res.spacing === 'double') spacingDoubleTotal++;
-                 else if (res.spacing === 'triple') spacingTripleTotal++;
-                 // Ignore 'N/A' spacing for accuracy calculations by spacing type
-
-                 if (res.response === 'timeout') {
-                     timeoutCount++;
-                 } else if (res.correct === 1) {
-                     correctCount++;
-                     if (res.latency_ms !== -1) { // Exclude timeouts from RT calcs
-                         totalCorrectRT += res.latency_ms;
-                         correctRTs.push(res.latency_ms);
-                     }
-                     // Tally correct counts by condition
-                     if (res.noise === 'yes') noiseYesCorrect++; else if (res.noise === 'no') noiseNoCorrect++;
-                     if (res.spacing === 'single') spacingSingleCorrect++;
-                     else if (res.spacing === 'double') spacingDoubleCorrect++;
-                     else if (res.spacing === 'triple') spacingTripleCorrect++;
+                if (res.noise === 'yes') noiseYesTotal++; else if (res.noise === 'no') noiseNoTotal++;
+                if (res.spacing === 'single') spacingSingleTotal++; else if (res.spacing === 'double') spacingDoubleTotal++; else if (res.spacing === 'triple') spacingTripleTotal++;
+                if (res.response === 'timeout') { timeoutCount++; }
+                else if (res.correct === 1) {
+                    correctCount++;
+                    if (res.latency_ms !== -1) { totalCorrectRT += res.latency_ms; correctRTs.push(res.latency_ms); }
+                    if (res.noise === 'yes') noiseYesCorrect++; else if (res.noise === 'no') noiseNoCorrect++;
+                    if (res.spacing === 'single') spacingSingleCorrect++; else if (res.spacing === 'double') spacingDoubleCorrect++; else if (res.spacing === 'triple') spacingTripleCorrect++;
                  }
              });
-
-            const totalTrials = results.length;
-            const respondedTrials = totalTrials - timeoutCount;
-            // Calculate metrics safely (handle division by zero)
+            const totalTrials = results.length; const respondedTrials = totalTrials - timeoutCount;
             const overallAccuracy = totalTrials > 0 ? (correctCount / totalTrials) * 100 : 0;
             const accuracyResponded = respondedTrials > 0 ? (correctCount / respondedTrials) * 100 : 0;
             const overallErrorRate = 100 - overallAccuracy;
@@ -798,32 +639,27 @@
             const overallMinRT = correctRTs.length > 0 ? Math.min(...correctRTs) : 0;
             const overallMaxRT = correctRTs.length > 0 ? Math.max(...correctRTs) : 0;
             const overallMedianRT = calculateMedian(correctRTs);
-
-            // Accuracy by condition - handle division by zero
-            const accuracyNoiseYes = noiseYesTotal > 0 ? (noiseYesCorrect / noiseYesTotal) * 100 : (noiseYesTotal === 0 ? NaN : 0); // NaN if condition didn't run
+            const accuracyNoiseYes = noiseYesTotal > 0 ? (noiseYesCorrect / noiseYesTotal) * 100 : (noiseYesTotal === 0 ? NaN : 0);
             const accuracyNoiseNo = noiseNoTotal > 0 ? (noiseNoCorrect / noiseNoTotal) * 100 : (noiseNoTotal === 0 ? NaN : 0);
             const accuracySpacingSingle = spacingSingleTotal > 0 ? (spacingSingleCorrect / spacingSingleTotal) * 100 : (spacingSingleTotal === 0 ? NaN : 0);
             const accuracySpacingDouble = spacingDoubleTotal > 0 ? (spacingDoubleCorrect / spacingDoubleTotal) * 100 : (spacingDoubleTotal === 0 ? NaN : 0);
             const accuracySpacingTriple = spacingTripleTotal > 0 ? (spacingTripleCorrect / spacingTripleTotal) * 100 : (spacingTripleTotal === 0 ? NaN : 0);
 
             summaryMetrics = {
-                totalTaskTime_s: (totalElapsedTime_ms / 1000).toFixed(2), // Renamed for clarity
-                totalTrials: totalTrials, timeoutCount: timeoutCount,
-                overallAccuracy: overallAccuracy.toFixed(2),
-                overallErrorRate: overallErrorRate.toFixed(2),
-                accuracyAmongResponded: accuracyResponded.toFixed(2),
-                overallMeanRT_ms: overallMeanRT.toFixed(2), overallMedianRT_ms: overallMedianRT.toFixed(2),
-                overallMinRT_ms: overallMinRT.toFixed(2), overallMaxRT_ms: overallMaxRT.toFixed(2), overallSDRT_ms: overallSDRT.toFixed(2),
-                // Add new noise accuracies, handle NaN for display
-                accuracyNoiseYes: isNaN(accuracyNoiseYes) ? 'N/A' : accuracyNoiseYes.toFixed(2),
-                accuracyNoiseNo: isNaN(accuracyNoiseNo) ? 'N/A' : accuracyNoiseNo.toFixed(2),
-                accuracySpacingSingle: isNaN(accuracySpacingSingle) ? 'N/A' : accuracySpacingSingle.toFixed(2),
-                accuracySpacingDouble: isNaN(accuracySpacingDouble) ? 'N/A' : accuracySpacingDouble.toFixed(2),
-                accuracySpacingTriple: isNaN(accuracySpacingTriple) ? 'N/A' : accuracySpacingTriple.toFixed(2),
+                 totalTaskTime_s: (totalElapsedTime_ms / 1000).toFixed(2), totalTrials: totalTrials, timeoutCount: timeoutCount,
+                 overallAccuracy: overallAccuracy.toFixed(2), overallErrorRate: overallErrorRate.toFixed(2),
+                 accuracyAmongResponded: accuracyResponded.toFixed(2), overallMeanRT_ms: overallMeanRT.toFixed(2),
+                 overallMedianRT_ms: overallMedianRT.toFixed(2), overallMinRT_ms: overallMinRT.toFixed(2),
+                 overallMaxRT_ms: overallMaxRT.toFixed(2), overallSDRT_ms: overallSDRT.toFixed(2),
+                 accuracyNoiseYes: isNaN(accuracyNoiseYes) ? 'N/A' : accuracyNoiseYes.toFixed(2),
+                 accuracyNoiseNo: isNaN(accuracyNoiseNo) ? 'N/A' : accuracyNoiseNo.toFixed(2),
+                 accuracySpacingSingle: isNaN(accuracySpacingSingle) ? 'N/A' : accuracySpacingSingle.toFixed(2),
+                 accuracySpacingDouble: isNaN(accuracySpacingDouble) ? 'N/A' : accuracySpacingDouble.toFixed(2),
+                 accuracySpacingTriple: isNaN(accuracySpacingTriple) ? 'N/A' : accuracySpacingTriple.toFixed(2),
              };
             console.log("Summary Metrics:", summaryMetrics);
 
-            // --- Display Summary ---
+            // --- Display Simplified Summary ---
             summaryResultsDiv.innerHTML = `
                 <ul>
                     <li>Total Task Time: ${summaryMetrics.totalTaskTime_s} seconds</li>
@@ -833,106 +669,46 @@
                     <li>Accuracy (Responded Trials Only): ${summaryMetrics.accuracyAmongResponded}%</li>
                     <li>Mean Correct Latency (Responded Trials): ${summaryMetrics.overallMeanRT_ms} ms</li>
                     <li>Median Correct Latency (Responded Trials): ${summaryMetrics.overallMedianRT_ms} ms</li>
-                    <li>Latency Range (Min-Max, Correct & Responded): ${summaryMetrics.overallMinRT_ms} - ${summaryMetrics.overallMaxRT_ms} ms</li>
-                    <li>Accuracy by Condition (Target Alone / Target+Flankers): ${summaryMetrics.accuracyNoiseNo}% / ${summaryMetrics.accuracyNoiseYes}%</li>
-                    <li>Accuracy by Spacing (Single / Double / Triple): ${summaryMetrics.accuracySpacingSingle}% / ${summaryMetrics.accuracySpacingDouble}% / ${summaryMetrics.accuracySpacingTriple}%</li>
-                </ul>`;
-            showScreen('summary'); // Show summary screen
+                    </ul>`;
+            showScreen('summary');
 
             // --- Prepare and Send Data to Google Sheet ---
             console.log("Preparing final data payload for Google Sheet...");
             const dataForSheet = {
-                eventType: 'experimentData', // Flag for Apps Script
-                participantID: participantData.id,
-                age: participantData.age,
-                gender: participantData.gender,
-                group: participantData.group, // Include group in final data
-                rawData: results, // Full raw data array
-                summaryData: summaryMetrics // Full summary metrics object
+                eventType: 'experimentData',
+                participantID: participantData.id, age: participantData.age, gender: participantData.gender, group: participantData.group,
+                rawData: results, summaryData: summaryMetrics
             };
-            sendDataToSheetGoogle(dataForSheet); // Call the sending function
+            sendDataToSheetGoogle(dataForSheet);
         }
 
-        function convertToCSV(dataArray) { /* ... (same as before, ensure 'group' header is added if needed) ... */
-             if (!dataArray || dataArray.length === 0) return "";
-             // Add 'group' to headers
-             const headers = [
-                 'participantId', 'age', 'gender', 'group', 'trialIndex', 'stimulus', 'centerLetter',
-                 'congruency', 'noise', 'spacing', 'response', 'correctKey', 'correct', 'latency_ms'
-             ];
-             const csvRows = [ headers.join(',') ]; // Header row
-
-             dataArray.forEach(row => {
-                 const values = headers.map(header => {
-                     let value = row[header];
-                     if (value === null || typeof value === 'undefined') value = '';
-                     if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
-                         value = `"${value.replace(/"/g, '""')}"`;
-                      }
-                     return value;
-                  });
-                 csvRows.push(values.join(','));
-              });
-             return csvRows.join('\n');
-          }
+        // convertToCSV function removed as requested
 
         // --- Restart Logic ---
-        restartBtn.addEventListener('click', () => {
-            // Reset state variables
-            participantData = {};
-            results = [];
-            summaryMetrics = {};
-            currentTrialIndex = 0;
-            if (countdownIntervalId) clearInterval(countdownIntervalId); // Stop timer if running
-            countdownIntervalId = null;
-
-            // Reset UI elements
-            infoForm.reset(); // Reset form fields
-            participantIdInput.value = '';
-            ageInput.value = '';
-            genderInput.value = '';
-            selectedGroupInput.value = '';
-            group1Btn.classList.remove('selected');
-            group2Btn.classList.remove('selected');
-            group1Btn.disabled = false; // Re-enable group buttons
-            group2Btn.disabled = false;
-            infoErrorDiv.textContent = '';
-            countdownError.textContent = '';
-
-            // Show the very first screen
-            showScreen('instructions');
-        });
+        restartBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
+             participantData = {}; results = []; summaryMetrics = {}; currentTrialIndex = 0;
+             if (countdownIntervalId) clearInterval(countdownIntervalId); countdownIntervalId = null;
+             infoForm.reset(); participantIdInput.value = ''; ageInput.value = ''; genderInput.value = ''; selectedGroupInput.value = '';
+             group1Btn.classList.remove('selected'); group2Btn.classList.remove('selected'); group1Btn.disabled = false; group2Btn.disabled = false;
+             infoErrorDiv.textContent = ''; countdownError.textContent = '';
+             showScreen('instructions');
+         });
 
         // --- Initial Setup ---
-        infoErrorDiv.textContent = ''; // Ensure error message is clear initially
-        countdownError.textContent = '';
-
+        infoErrorDiv.textContent = ''; countdownError.textContent = '';
 
         // --- Google Sheet Sending Function ---
-        // This function now sends WHATEVER payload it's given.
-        // The payload structure determines what the Apps Script should do.
-        function sendDataToSheetGoogle(payload) {
+        function sendDataToSheetGoogle(payload) { /* ... (no changes needed) ... */
           console.log("Attempting to send payload via fetch:", JSON.stringify(payload).substring(0, 500) + "...");
-
-          fetch(GOOGLE_SCRIPT_URL, { // Use the single configured URL
-            method: "POST",
-            headers: { "Content-Type": "application/json", },
-            body: JSON.stringify(payload), // Send the prepared payload
-            mode: 'no-cors'
-          })
-          .then(() => {
-           console.log("Payload submission fetch initiated (mode: no-cors). Check Google Sheet/Apps Script Logs.");
-          })
+          fetch(GOOGLE_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "application/json", }, body: JSON.stringify(payload), mode: 'no-cors' })
+          .then(() => { console.log("Payload submission fetch initiated (mode: no-cors). Check Google Sheet/Apps Script Logs."); })
           .catch((error) => {
             console.error("❌ Error initiating fetch to Google Sheet URL:", error);
-            // Avoid alerting for Group 1 trigger, maybe only for final data?
-            if (payload.eventType === 'experimentData') {
-                 alert("A network error occurred while trying to send final data. Please check connection/console.");
-            }
+            if (payload.eventType === 'experimentData') { alert("A network error occurred while trying to send final data. Please check connection/console."); }
           });
        }
 
     </script>
 
-    </body>
+</body>
 </html>
