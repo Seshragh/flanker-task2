@@ -108,10 +108,11 @@
         <div id="instructions" class="screen active">
             <h2>Welcome to the Experiment</h2>
             <p>Please read the instructions carefully.</p>
-            <p>You will first be asked for some basic information and to select a group.</p>
+            <p>You will first be asked for some non-personal information and to select a group.</p>
             <p>This will be followed by a brief resting period with your eyes closed.</p>
             <p>Finally, you will perform the main letter identification task.</p>
-             <p>Click "Continue" to enter your information.</p>
+             <p>If you are using a smartphone, please rotate your screen to view the test horizontally</p>
+             <p>Click "Continue" to enter non-personal information.</p>
             <button id="continueToInfoBtn">Continue</button>
         </div>
 
@@ -139,7 +140,7 @@
                  </div>
 
                  <div id="groupSelection">
-                    <p>Please select your assigned group:</p>
+                    <p>Please randomly select a group:</p>
                     <button type="button" id="group1Btn" data-group="Group 1">Group 1</button>
                     <button type="button" id="group2Btn" data-group="Group 2">Group 2</button>
                     <input type="hidden" id="selectedGroup" name="selectedGroup" value=""> </div>
@@ -149,9 +150,9 @@
 
          <div id="eyesClosedScreen" class="screen">
              <h2>Resting Period</h2>
-             <p id="eyesClosedText">Please close your eyes for 3 minutes and be an impartial observer.</p>
+             <p id="eyesClosedText">Please close your eyes for 3 minutes and only be an impartial observer thoughout the process. Do not act in any meditation or other techniques. </p>
              <div id="eyesClosedCountdown" style="display: none;">3:00</div>
-             <button id="startCountdownBtn">Start 3 Minute Timer</button>
+             <button id="startCountdownBtn">Start Timer</button>
              <button id="continueAfterRestBtn" style="display: none;">Continue</button>
              <div id="countdownError" class="error-message"></div>
          </div>
@@ -180,7 +181,7 @@
         </div>
 
         <div id="summary" class="screen">
-             <h2>Task Complete!</h2>
+             <h2>Task Complete! Thank you for your participation</h2>
              <p>Here is a summary of your results:</p>
              <div id="summaryResults"></div>
              <button id="restartBtn">Restart Experiment</button>
