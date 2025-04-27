@@ -650,6 +650,9 @@
                 // Hide stimulus elements
                 stimulusDiv.classList.add('hidden');
                 touchControlsDiv.classList.add('hidden');
+                // --- ADD THIS LINE ---
+                fixationDiv.classList.add('hidden'); // Hide fixation before showing feedback
+                // --- END OF ADDED LINE ---
 
                 // --- Record Result ---
                 results.push({
@@ -669,6 +672,7 @@
                     latency_ms: reactionTime
                 });
 
+                // Show feedback AFTER hiding other elements
                 showFeedback(correct ? "Correct" : "Incorrect");
 
                 // Schedule next trial
@@ -677,7 +681,7 @@
                     runTrial(currentTrialIndex);
                 }, FEEDBACK_DURATION + ITI);
             }
-        }
+        } // End handleKeyPress
 
         function handleTimeout(trial) {
             console.warn(`Timeout occurred for trial ${currentTrialIndex}`);
@@ -698,6 +702,9 @@
             // Hide stimulus elements
             stimulusDiv.classList.add('hidden');
             touchControlsDiv.classList.add('hidden');
+            // --- ADD THIS LINE ---
+            fixationDiv.classList.add('hidden'); // Hide fixation before showing feedback
+            // --- END OF ADDED LINE ---
 
             // --- Record Timeout Result ---
             results.push({
@@ -717,6 +724,7 @@
                 latency_ms: -1
             });
 
+            // Show feedback AFTER hiding other elements
             showFeedback("Too Slow");
 
             // Schedule next trial
@@ -724,7 +732,7 @@
                 currentTrialIndex++;
                 runTrial(currentTrialIndex);
             }, FEEDBACK_DURATION + ITI);
-        }
+        } // End handleTimeout
 
         function showFeedback(message) { /* ... (same as before, maybe clear text first) ... */
              feedbackDiv.textContent = ''; // Clear previous
