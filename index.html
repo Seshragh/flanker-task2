@@ -538,10 +538,21 @@
 
                 // Record Result
                 results.push({
-                    participantId: participantData.id, age: participantData.age, gender: participantData.gender, group: participantData.group,
-                    trialIndex: currentTrialIndex, stimulus: trial.stimulus_base, centerLetter: trial.centerLetter,
-                    congruency: trial.condition_congruency, noise: trial.condition_noise, spacing: trial.condition_spacing,
-                    response: key, correctKey: expectedKey, correct: correct ? 1 : 0, latency_ms: reactionTime
+                    participantId: participantData.id,
+                    age: participantData.age,
+                    gender: participantData.gender,
+                    group: participantData.group, // Store selected group
+                    trialIndex: currentTrialIndex,
+                    stimulus: trial.stimulus_base, // Base stimulus string
+                    centerLetter: trial.centerLetter,
+                    congruency: trial.condition_congruency,
+                    noise: trial.condition_noise,
+                    spacing: trial.condition_spacing,
+                    response: key,
+                    correctKey: expectedKey,
+                    correct: correct ? 1 : 0,
+                    latency_ms: reactionTime,
+                    timestamp: new Date().toISOString() // Add timestamp for the response
                 });
 
                 // Show feedback
@@ -576,11 +587,22 @@
 
             // Record Timeout Result
             results.push({
-                participantId: participantData.id, age: participantData.age, gender: participantData.gender, group: participantData.group,
-                trialIndex: currentTrialIndex, stimulus: trial.stimulus_base, centerLetter: trial.centerLetter,
-                congruency: trial.condition_congruency, noise: trial.condition_noise, spacing: trial.condition_spacing,
-                response: 'timeout', correctKey: trial.correctKey, correct: 0, latency_ms: -1
-            });
+                    participantId: participantData.id,
+                    age: participantData.age,
+                    gender: participantData.gender,
+                    group: participantData.group, // Store selected group
+                    trialIndex: currentTrialIndex,
+                    stimulus: trial.stimulus_base,
+                    centerLetter: trial.centerLetter,
+                    congruency: trial.condition_congruency,
+                    noise: trial.condition_noise,
+                    spacing: trial.condition_spacing,
+                    response: 'timeout',
+                    correctKey: trial.correctKey,
+                    correct: 0,
+                    latency_ms: -1,
+                    timestamp: new Date().toISOString() // Add timestamp for the timeout event
+                });
 
             // Show feedback
             showFeedback("Too Slow");
@@ -645,16 +667,22 @@
             const accuracySpacingTriple = spacingTripleTotal > 0 ? (spacingTripleCorrect / spacingTripleTotal) * 100 : (spacingTripleTotal === 0 ? NaN : 0);
 
             summaryMetrics = {
-                 totalTaskTime_s: (totalElapsedTime_ms / 1000).toFixed(2), totalTrials: totalTrials, timeoutCount: timeoutCount,
-                 overallAccuracy: overallAccuracy.toFixed(2), overallErrorRate: overallErrorRate.toFixed(2),
-                 accuracyAmongResponded: accuracyResponded.toFixed(2), overallMeanRT_ms: overallMeanRT.toFixed(2),
-                 overallMedianRT_ms: overallMedianRT.toFixed(2), overallMinRT_ms: overallMinRT.toFixed(2),
-                 overallMaxRT_ms: overallMaxRT.toFixed(2), overallSDRT_ms: overallSDRT.toFixed(2),
+                 totalTaskTime_s: (totalElapsedTime_ms / 1000).toFixed(2),
+                 totalTrials: totalTrials, timeoutCount: timeoutCount,
+                 overallAccuracy: overallAccuracy.toFixed(2),
+                 overallErrorRate: overallErrorRate.toFixed(2),
+                 accuracyAmongResponded: accuracyResponded.toFixed(2),
+                 overallMeanRT_ms: overallMeanRT.toFixed(2),
+                 overallMedianRT_ms: overallMedianRT.toFixed(2),
+                 overallMinRT_ms: overallMinRT.toFixed(2),
+                 overallMaxRT_ms: overallMaxRT.toFixed(2),
+                 overallSDRT_ms: overallSDRT.toFixed(2),
                  accuracyNoiseYes: isNaN(accuracyNoiseYes) ? 'N/A' : accuracyNoiseYes.toFixed(2),
                  accuracyNoiseNo: isNaN(accuracyNoiseNo) ? 'N/A' : accuracyNoiseNo.toFixed(2),
                  accuracySpacingSingle: isNaN(accuracySpacingSingle) ? 'N/A' : accuracySpacingSingle.toFixed(2),
                  accuracySpacingDouble: isNaN(accuracySpacingDouble) ? 'N/A' : accuracySpacingDouble.toFixed(2),
                  accuracySpacingTriple: isNaN(accuracySpacingTriple) ? 'N/A' : accuracySpacingTriple.toFixed(2),
+                 experimentEndTimeUTC: new Date(experimentEndTime).toISOString() // Add timestamp for experiment completion
              };
             console.log("Summary Metrics:", summaryMetrics);
 
