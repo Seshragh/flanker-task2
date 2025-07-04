@@ -683,7 +683,7 @@
                  accuracySpacingSingle: isNaN(accuracySpacingSingle) ? 'N/A' : accuracySpacingSingle.toFixed(2),
                  accuracySpacingDouble: isNaN(accuracySpacingDouble) ? 'N/A' : accuracySpacingDouble.toFixed(2),
                  accuracySpacingTriple: isNaN(accuracySpacingTriple) ? 'N/A' : accuracySpacingTriple.toFixed(2),
-                 experimentEndTimeUTC: new Date(experimentEndTime).toISOString() // Add timestamp for experiment completion
+                 experimentEndTimeUTC: new Date().toISOString() // Add timestamp for experiment completion
              };
             console.log("Summary Metrics:", summaryMetrics);
 
