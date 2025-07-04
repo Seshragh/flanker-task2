@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flanker Task v3 (Multi-Stage, New Noise)</title>
+    <title>Flanker Task v4 (Consent Added)</title>
     <style>
         /* Basic CSS */
         body {
@@ -33,9 +33,9 @@
 
         /* General Button Styling */
         button {
-             padding: 10px 15px; font-size: 16px; cursor: pointer; margin: 10px 5px; /* Increased top/bottom margin */
-             background-color: #007bff; color: white; border: none; border-radius: 4px;
-             min-width: 100px; /* Ensure minimum width */
+            padding: 10px 15px; font-size: 16px; cursor: pointer; margin: 10px 5px; /* Increased top/bottom margin */
+            background-color: #007bff; color: white; border: none; border-radius: 4px;
+            min-width: 100px; /* Ensure minimum width */
         }
         button:hover:not(:disabled) { background-color: #0056b3; }
         button:disabled { background-color: #cccccc; cursor: not-allowed; }
@@ -62,7 +62,6 @@
         p { margin: 10px 0; line-height: 1.5; }
 
         /* Feedback Styling */
-        /* Make feedback hidden by default */
         #feedback { font-size: 24px; font-weight: bold; margin-top: 20px; height: 30px; display: none; }
         #feedback.visible { display: block; } /* Use a class to show */
         #feedback.correct { color: green; }
@@ -83,23 +82,21 @@
             border-radius: 8px; min-width: 130px;
             -webkit-tap-highlight-color: rgba(0,0,0,0.1);
         }
-         #touchControls button:active { background-color: #cce0ff; transform: scale(0.98); }
+        #touchControls button:active { background-color: #cce0ff; transform: scale(0.98); }
 
-         /* Eyes Closed Screen Styling */
-         #eyesClosedCountdown {
+        /* Eyes Closed Screen Styling */
+        #eyesClosedCountdown {
             font-size: 48px; font-weight: bold; margin: 20px 0; color: #dc3545;
-         }
-         #eyesClosedText { font-size: 18px; margin-bottom: 20px;}
+        }
+        #eyesClosedText { font-size: 18px; margin-bottom: 20px;}
 
-         /* Fixation visibility */
-         #fixation { display: none; } /* Hidden by default */
-         #fixation.visible { display: block; } /* Use a class to show */
+        /* Fixation visibility */
+        #fixation { display: none; } /* Hidden by default */
+        #fixation.visible { display: block; } /* Use a class to show */
 
-         /* Stimulus visibility */
-         #stimulus { display: none; } /* Hidden by default */
-         #stimulus.visible { display: block; } /* Use a class to show */
-
-
+        /* Stimulus visibility */
+        #stimulus { display: none; } /* Hidden by default */
+        #stimulus.visible { display: block; } /* Use a class to show */
     </style>
 </head>
 <body>
@@ -108,18 +105,33 @@
         <div id="instructions" class="screen active">
             <h2>Welcome to the Experiment</h2>
             <p>Please read the instructions carefully.</p>
-            <p>You will first be asked for some non-personal information and to select a group.</p>
+            <p>You will first be asked to provide consent, then enter some non-personal information and select a group.</p>
             <p>This will be followed by a brief resting period with your eyes closed.</p>
             <p>Finally, you will perform the main letter identification task.</p>
-             <p>If you are using a smartphone, please rotate your screen to view the test horizontally</p>
-             <p>Click "Continue" to enter non-personal information.</p>
+            <p>If you are using a smartphone, please rotate your screen to view the test horizontally</p>
+            <p>Click "Continue" to proceed to the consent form.</p>
             <button id="continueToInfoBtn">Continue</button>
         </div>
 
+        <div id="consent" class="screen">
+            <h2>Consent to Participate</h2>
+            <p>Before you begin, please review the consent form which details the purpose of this study, the procedures, potential risks and benefits, and your rights as a participant.</p>
+            
+            <p>You can view the full consent form here: 
+                <a href="#" target="_blank" rel="noopener noreferrer">Consent Form Details</a>
+            </p>
+            
+            <div style="margin: 20px 0;">
+                <input type="checkbox" id="consentCheckbox" style="vertical-align: middle; margin-right: 8px;">
+                <label for="consentCheckbox">I have read the consent terms and agree to participate.</label>
+            </div>
+
+            <button id="agreeBtn" disabled>I Agree, Continue</button>
+        </div>
         <div id="participantInfo" class="screen">
             <h2>Participant Information</h2>
             <form id="infoForm">
-                 <div class="form-row">
+                <div class="form-row">
                     <label for="participantId">Create Participant ID:</label>
                     <input type="text" id="participantId" name="participantId" required title="Enter any combination of letters/numbers">
                 </div>
@@ -137,35 +149,38 @@
                         <option value="Other">Other</option>
                         <option value="Prefer_not_to_say">Prefer not to say</option>
                     </select>
-                 </div>
+                </div>
 
-                 <div id="groupSelection">
+                <div id="groupSelection">
                     <p>Please randomly select a group:</p>
                     <button type="button" id="group1Btn" data-group="Group 1">Group 1</button>
                     <button type="button" id="group2Btn" data-group="Group 2">Group 2</button>
-                    <input type="hidden" id="selectedGroup" name="selectedGroup" value=""> </div>
+                    <input type="hidden" id="selectedGroup" name="selectedGroup" value="">
+                </div>
 
-                 <button type="submit" id="submitInfoBtn">Continue</button> <div id="infoError" class="error-message"></div> </form>
+                <button type="submit" id="submitInfoBtn">Continue</button>
+                <div id="infoError" class="error-message"></div>
+            </form>
         </div>
 
-         <div id="eyesClosedScreen" class="screen">
-             <h2>Resting Period</h2>
-             <p id="eyesClosedText">Please close your eyes for at least 3 minutes and only be an impartial observer thoughout the process. Do not act in meditation or any other techniques. </p>
-             <div id="eyesClosedCountdown" style="display: none;">3:00</div>
-             <button id="startCountdownBtn">Start Timer</button>
-             <button id="continueAfterRestBtn" style="display: none;">Continue</button>
-             <div id="countdownError" class="error-message"></div>
-         </div>
+        <div id="eyesClosedScreen" class="screen">
+            <h2>Resting Period</h2>
+            <p id="eyesClosedText">Please close your eyes for at least 3 minutes and only be an impartial observer thoughout the process. Do not act in meditation or any other techniques. </p>
+            <div id="eyesClosedCountdown" style="display: none;">3:00</div>
+            <button id="startCountdownBtn">Start Timer</button>
+            <button id="continueAfterRestBtn" style="display: none;">Continue</button>
+            <div id="countdownError" class="error-message"></div>
+        </div>
 
         <div id="preTaskInstructions" class="screen">
             <h2>Task Instructions Reminder</h2>
             <p>Keep your eyes focused on the center of the screen where a '+' will appear.</p>
             <p>A letter (or sequence of letters) will appear briefly.</p>
             <p>Your task is to identify the <strong>center letter</strong>.</p>
-             <ul id="instructionListReminder">
-                 <li>Press <strong>F</strong> on your keyboard OR tap the <strong>(F)</strong> button if the center letter is <strong>A</strong> or <strong>K</strong></li>
-                 <li>Press <strong>J</strong> on your keyboard OR tap the <strong>(J)</strong> button if the center letter is <strong>L</strong> or <strong>R</strong></li>
-             </ul>
+            <ul id="instructionListReminder">
+                <li>Press <strong>F</strong> on your keyboard OR tap the <strong>(F)</strong> button if the center letter is <strong>A</strong> or <strong>K</strong></li>
+                <li>Press <strong>J</strong> on your keyboard OR tap the <strong>(J)</strong> button if the center letter is <strong>L</strong> or <strong>R</strong></li>
+            </ul>
             <p>Please respond as quickly and accurately as possible.</p>
             <button id="startFlankerTaskBtn">Start Task</button>
         </div>
@@ -181,17 +196,19 @@
         </div>
 
         <div id="summary" class="screen">
-             <h2>Task Complete! Thank you for your participation</h2>
-             <p>Here is a summary of your results:</p>
-             <div id="summaryResults"></div>
-             <button id="restartBtn">Restart Experiment</button>
-             </div>
+            <h2>Task Complete! Thank you for your participation</h2>
+            <p>Here is a summary of your results:</p>
+            <div id="summaryResults"></div>
+            <button id="restartBtn">Restart Experiment</button>
+        </div>
 
-    </div> <script>
+    </div>
+    <script>
         // --- Get References ---
         const containerDiv = document.querySelector('.container');
         const screens = document.querySelectorAll('.container .screen');
         const instructionsDiv = document.getElementById('instructions');
+        const consentDiv = document.getElementById('consent'); // <-- ADDED
         const participantInfoDiv = document.getElementById('participantInfo');
         const eyesClosedScreenDiv = document.getElementById('eyesClosedScreen');
         const preTaskInstructionsDiv = document.getElementById('preTaskInstructions');
@@ -199,6 +216,9 @@
         const summaryDiv = document.getElementById('summary');
 
         const continueToInfoBtn = document.getElementById('continueToInfoBtn');
+        const consentCheckbox = document.getElementById('consentCheckbox'); // <-- ADDED
+        const agreeBtn = document.getElementById('agreeBtn'); // <-- ADDED
+        
         const infoForm = document.getElementById('infoForm');
         const participantIdInput = document.getElementById('participantId');
         const ageInput = document.getElementById('age');
@@ -227,7 +247,6 @@
 
         const summaryResultsDiv = document.getElementById('summaryResults');
         const restartBtn = document.getElementById('restartBtn');
-        // developerDataButton reference removed
 
         // --- State Variables ---
         let trials = [];
@@ -249,30 +268,29 @@
         const EYES_CLOSED_DURATION_SECONDS = 180;
 
         // --- Configuration ---
-        // IMPORTANT: Replace with YOUR actual Google Apps Script URL
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzI9_zYE-vhFFWxM1OQw7Bnrci6CNacxAHY3oWCCmZXHQzF2KSGaJhJcs48zje63mva/exec"; // Replace if needed!
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzI9_zYE-vhFFWxM1OQw7Bnrci6CNacxAHY3oWCCmZXHQzF2KSGaJhJcs48zje63mva/exec";
 
         // --- Utility Functions ---
-        function shuffleArray(array) { /* ... (no changes needed) ... */
+        function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
             return array;
         }
-        function calculateSD(data, mean) { /* ... (no changes needed) ... */
+        function calculateSD(data, mean) {
             if (!data || data.length < 2) return 0;
             const N = data.length;
             const variance = data.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / (N - 1);
             return Math.sqrt(variance);
         }
-        function calculateMedian(data) { /* ... (no changes needed) ... */
+        function calculateMedian(data) {
             if (!data || data.length === 0) return 0;
             const sortedData = [...data].sort((a, b) => a - b);
             const mid = Math.floor(sortedData.length / 2);
             return sortedData.length % 2 === 0 ? (sortedData[mid - 1] + sortedData[mid]) / 2 : sortedData[mid];
         }
-        function formatStimulus(stimulusString, spacingType, isNoiseTrial) { /* ... (no changes needed) ... */
+        function formatStimulus(stimulusString, spacingType, isNoiseTrial) {
             if (!isNoiseTrial || !stimulusString) {
                 return stimulusString || '';
             }
@@ -287,16 +305,16 @@
         }
 
         // --- Screen Switching ---
-        function showScreen(screenId) { /* ... (no changes needed) ... */
-             console.log("Switching to screen:", screenId);
-             screens.forEach(screen => {
-                 if (screen.id === screenId) {
-                     screen.classList.add('active');
-                 } else {
-                     screen.classList.remove('active');
-                 }
-             });
-         }
+        function showScreen(screenId) {
+            console.log("Switching to screen:", screenId);
+            screens.forEach(screen => {
+                if (screen.id === screenId) {
+                    screen.classList.add('active');
+                } else {
+                    screen.classList.remove('active');
+                }
+            });
+        }
 
         // --- Define Trials ---
         function setupTrials() {
@@ -305,59 +323,54 @@
                 congruency: ['congruent', 'incongruent', 'neutral'],
                 noise: ['no', 'yes'],
                 spacing: ['single', 'double', 'triple', 'N/A']
-             };
+            };
             const baseTrials = [];
-
             for (const noiseType of conditions.noise) {
-                 for (const targetSetKey in letters) {
-                     const targetSet = letters[targetSetKey];
-                     const flankerSet = targetSetKey === 'set1' ? letters.set2 : letters.set1;
-                     const correctKey = targetSetKey === 'set1' ? 'f' : 'j';
-                     const targetLetter = targetSet[Math.floor(Math.random() * targetSet.length)];
-
-                     if (noiseType === 'no') {
-                         baseTrials.push({
-                             stimulus_base: targetLetter, centerLetter: targetLetter, correctKey: correctKey,
-                             condition_congruency: 'neutral', condition_noise: 'no', condition_spacing: 'N/A',
-                             touchFHandler: null, touchJHandler: null
-                         });
-                     } else {
-                         for (const cong of ['congruent', 'incongruent']) {
-                             for (const spacingType of ['single', 'double', 'triple']) {
-                                 let stimulusString = "";
-                                 if (cong === 'congruent') {
-                                     stimulusString = targetLetter.repeat(5);
-                                 } else {
-                                     const flankerLetter = flankerSet[Math.floor(Math.random() * flankerSet.length)];
-                                     stimulusString = `${flankerLetter}${flankerLetter}${targetLetter}${flankerLetter}${flankerLetter}`;
-                                 }
-                                 baseTrials.push({
-                                     stimulus_base: stimulusString, centerLetter: targetLetter, correctKey: correctKey,
-                                     condition_congruency: cong, condition_noise: 'yes', condition_spacing: spacingType,
-                                     touchFHandler: null, touchJHandler: null
-                                 });
-                             }
-                         }
-                     }
-                 }
-             }
-
+                for (const targetSetKey in letters) {
+                    const targetSet = letters[targetSetKey];
+                    const flankerSet = targetSetKey === 'set1' ? letters.set2 : letters.set1;
+                    const correctKey = targetSetKey === 'set1' ? 'f' : 'j';
+                    const targetLetter = targetSet[Math.floor(Math.random() * targetSet.length)];
+                    if (noiseType === 'no') {
+                        baseTrials.push({
+                            stimulus_base: targetLetter, centerLetter: targetLetter, correctKey: correctKey,
+                            condition_congruency: 'neutral', condition_noise: 'no', condition_spacing: 'N/A',
+                            touchFHandler: null, touchJHandler: null
+                        });
+                    } else {
+                        for (const cong of ['congruent', 'incongruent']) {
+                            for (const spacingType of ['single', 'double', 'triple']) {
+                                let stimulusString = "";
+                                if (cong === 'congruent') {
+                                    stimulusString = targetLetter.repeat(5);
+                                } else {
+                                    const flankerLetter = flankerSet[Math.floor(Math.random() * flankerSet.length)];
+                                    stimulusString = `${flankerLetter}${flankerLetter}${targetLetter}${flankerLetter}${flankerLetter}`;
+                                }
+                                baseTrials.push({
+                                    stimulus_base: stimulusString, centerLetter: targetLetter, correctKey: correctKey,
+                                    condition_congruency: cong, condition_noise: 'yes', condition_spacing: spacingType,
+                                    touchFHandler: null, touchJHandler: null
+                                });
+                            }
+                        }
+                    }
+                }
+            }
             const repeatedTrials = [];
-            const reps = 8; // 28 base conditions * 6 reps = 168 trials
+            const reps = 8;
             console.log(`Base trial types: ${baseTrials.length}. Repetitions: ${reps}. Total trials: ${baseTrials.length * reps}`);
-
             for (let i = 0; i < reps; i++) {
-                 repeatedTrials.push(...baseTrials.map(trial => ({ ...trial })));
-             }
+                repeatedTrials.push(...baseTrials.map(trial => ({ ...trial })));
+            }
             trials = shuffleArray(repeatedTrials);
             currentTrialIndex = 0;
             results = [];
-            console.log(`Trial setup complete: ${trials.length} trials generated.`); // Should log 168
+            console.log(`Trial setup complete: ${trials.length} trials generated.`);
         }
 
-
         // --- Group 1 Notification ---
-        function sendGroup1Notification() { /* ... (no changes needed) ... */
+        function sendGroup1Notification() {
             console.log("Group 1 selected. Attempting to send notification trigger.");
             if (!participantData.id) {
                 console.error("Cannot send Group 1 notification without Participant ID.");
@@ -369,47 +382,62 @@
                 timestamp: new Date().toISOString(),
                 age: participantData.age,
                 gender: participantData.gender
-             };
+            };
             fetch(GOOGLE_SCRIPT_URL, {
-                 method: "POST", headers: { "Content-Type": "application/json" },
-                 body: JSON.stringify(payload), mode: 'no-cors'
-             })
-             .then(() => { console.log("Group 1 notification trigger fetch initiated (mode: no-cors). Check Apps Script logs."); })
-             .catch(error => { console.error("❌ Error initiating fetch for Group 1 notification:", error); });
-         }
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload), mode: 'no-cors'
+            })
+            .then(() => { console.log("Group 1 notification trigger fetch initiated (mode: no-cors). Check Apps Script logs."); })
+            .catch(error => { console.error("❌ Error initiating fetch for Group 1 notification:", error); });
+        }
 
-         // --- Countdown Timer Logic ---
-         function startCountdown(durationSeconds, displayElement, callback) { /* ... (no changes needed) ... */
-             if (countdownIntervalId) { clearInterval(countdownIntervalId); }
-             countdownError.textContent = '';
-             let timer = durationSeconds;
-             displayElement.style.display = 'block';
-             countdownIntervalId = setInterval(() => {
-                 let minutes = parseInt(timer / 60, 10);
-                 let seconds = parseInt(timer % 60, 10);
-                 minutes = minutes < 10 ? "0" + minutes : minutes;
-                 seconds = seconds < 10 ? "0" + seconds : seconds;
-                 displayElement.textContent = minutes + ":" + seconds;
-                 if (--timer < 0) {
-                     clearInterval(countdownIntervalId);
-                     countdownIntervalId = null;
-                     displayElement.textContent = "00:00";
-                     if (callback) callback();
-                 }
-             }, 1000);
-         }
+        // --- Countdown Timer Logic ---
+        function startCountdown(durationSeconds, displayElement, callback) {
+            if (countdownIntervalId) { clearInterval(countdownIntervalId); }
+            countdownError.textContent = '';
+            let timer = durationSeconds;
+            displayElement.style.display = 'block';
+            countdownIntervalId = setInterval(() => {
+                let minutes = parseInt(timer / 60, 10);
+                let seconds = parseInt(timer % 60, 10);
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                displayElement.textContent = minutes + ":" + seconds;
+                if (--timer < 0) {
+                    clearInterval(countdownIntervalId);
+                    countdownIntervalId = null;
+                    displayElement.textContent = "00:00";
+                    if (callback) callback();
+                }
+            }, 1000);
+        }
 
         // --- Experiment Flow Control ---
-        continueToInfoBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
-            showScreen('participantInfo'); infoErrorDiv.textContent = '';
+        // MODIFIED: This button now moves from the Welcome screen to the Consent screen
+        continueToInfoBtn.addEventListener('click', () => {
+            showScreen('consent');
         });
-        group1Btn.addEventListener('click', (e) => { /* ... (no changes needed) ... */
+
+        // ADDED: This listener enables the 'agree' button only when the checkbox is ticked
+        consentCheckbox.addEventListener('change', () => {
+            agreeBtn.disabled = !consentCheckbox.checked;
+        });
+
+        // ADDED: This button moves from the Consent screen to the Participant Info screen
+        agreeBtn.addEventListener('click', () => {
+            showScreen('participantInfo');
+            infoErrorDiv.textContent = ''; // Clear any previous errors
+        });
+        
+        group1Btn.addEventListener('click', (e) => {
             selectedGroupInput.value = e.target.dataset.group; group1Btn.classList.add('selected'); group2Btn.classList.remove('selected'); group1Btn.disabled = true; group2Btn.disabled = true; console.log("Group selected:", selectedGroupInput.value);
         });
-        group2Btn.addEventListener('click', (e) => { /* ... (no changes needed) ... */
+        
+        group2Btn.addEventListener('click', (e) => {
             selectedGroupInput.value = e.target.dataset.group; group2Btn.classList.add('selected'); group1Btn.classList.remove('selected'); group1Btn.disabled = true; group2Btn.disabled = true; console.log("Group selected:", selectedGroupInput.value);
         });
-        infoForm.addEventListener('submit', (event) => { /* ... (no changes needed) ... */
+        
+        infoForm.addEventListener('submit', (event) => {
             event.preventDefault(); infoErrorDiv.textContent = '';
             const id = participantIdInput.value.trim(); const age = ageInput.value; const gender = genderInput.value; const group = selectedGroupInput.value;
             if (id && age && parseInt(age) > 0 && gender && group) {
@@ -418,35 +446,36 @@
                 showScreen('eyesClosedScreen'); startCountdownBtn.style.display = 'inline-block'; startCountdownBtn.disabled = false; continueAfterRestBtn.style.display = 'none'; eyesClosedCountdown.style.display = 'none'; eyesClosedCountdown.textContent = ''; countdownError.textContent = '';
             } else {
                 let errorMsg = "Please correct the following: "; if (!id) errorMsg += "Participant ID is required. "; if (!age || parseInt(age) <= 0) errorMsg += "Valid age is required. "; if (!gender) errorMsg += "Gender selection is required. "; if (!group) errorMsg += "Group selection is required. "; infoErrorDiv.textContent = errorMsg.trim();
-             }
+            }
         });
-         startCountdownBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
-             startCountdownBtn.disabled = true; startCountdownBtn.style.display = 'none'; eyesClosedCountdown.textContent = 'Starting...';
-             startCountdown(EYES_CLOSED_DURATION_SECONDS, eyesClosedCountdown, () => { console.log("Eyes closed period finished."); eyesClosedText.textContent = "Thank you. Please open your eyes."; continueAfterRestBtn.style.display = 'inline-block'; eyesClosedCountdown.style.color = 'green'; });
-         });
-         continueAfterRestBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
-             showScreen('preTaskInstructions');
-         });
-         startFlankerTaskBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
-             console.log("Starting Flanker Task..."); showScreen('task'); startExperiment();
-         });
-
+        
+        startCountdownBtn.addEventListener('click', () => {
+            startCountdownBtn.disabled = true; startCountdownBtn.style.display = 'none'; eyesClosedCountdown.textContent = 'Starting...';
+            startCountdown(EYES_CLOSED_DURATION_SECONDS, eyesClosedCountdown, () => { console.log("Eyes closed period finished."); eyesClosedText.textContent = "Thank you. Please open your eyes."; continueAfterRestBtn.style.display = 'inline-block'; eyesClosedCountdown.style.color = 'green'; });
+        });
+        
+        continueAfterRestBtn.addEventListener('click', () => {
+            showScreen('preTaskInstructions');
+        });
+        
+        startFlankerTaskBtn.addEventListener('click', () => {
+            console.log("Starting Flanker Task..."); showScreen('task'); startExperiment();
+        });
 
         // --- Flanker Task Core Logic ---
-        function startExperiment() { /* ... (no changes needed, initial hides are good) ... */
-             console.log("Initializing Flanker Task trials for:", participantData);
-             experimentStartTime = performance.now();
-             setupTrials();
-             if (trials.length > 0) {
-                 stimulusDiv.textContent = ''; stimulusDiv.classList.remove('visible'); // Use class
-                 feedbackDiv.textContent = ''; feedbackDiv.classList.remove('visible'); // Use class
-                 touchControlsDiv.classList.remove('visible'); // Use class
-                 fixationDiv.classList.remove('visible'); // Use class
-                 runTrial(currentTrialIndex);
-             } else { console.error("No trials defined! Cannot start task."); }
-         }
+        function startExperiment() {
+            console.log("Initializing Flanker Task trials for:", participantData);
+            experimentStartTime = performance.now();
+            setupTrials();
+            if (trials.length > 0) {
+                stimulusDiv.textContent = ''; stimulusDiv.classList.remove('visible');
+                feedbackDiv.textContent = ''; feedbackDiv.classList.remove('visible');
+                touchControlsDiv.classList.remove('visible');
+                fixationDiv.classList.remove('visible');
+                runTrial(currentTrialIndex);
+            } else { console.error("No trials defined! Cannot start task."); }
+        }
 
-        // *** FIX 3: Revised runTrial for Visibility ***
         function runTrial(trialIndex) {
             if (trialIndex >= trials.length) {
                 endExperiment(); return;
@@ -457,74 +486,60 @@
             if (trialTimeoutId) clearTimeout(trialTimeoutId);
             trialTimeoutId = null;
 
-            // Explicitly HIDE all dynamic elements at the start of a trial cycle
             stimulusDiv.classList.remove('visible');
             feedbackDiv.classList.remove('visible');
             touchControlsDiv.classList.remove('visible');
 
-            // Show ONLY fixation
             fixationDiv.textContent = '+';
             fixationDiv.classList.add('visible');
 
-            // Disable response buttons
             touchButtonF.disabled = true;
             touchButtonJ.disabled = true;
 
-            // Schedule Stimulus Presentation
             setTimeout(() => {
                 try {
-                    // Hide fixation
                     fixationDiv.classList.remove('visible');
 
                     const formattedStimulus = formatStimulus(
                         currentTrial.stimulus_base, currentTrial.condition_spacing, currentTrial.condition_noise === 'yes'
                     );
                     stimulusDiv.innerHTML = formattedStimulus;
-                    // Show stimulus and controls
                     stimulusDiv.classList.add('visible');
                     touchControlsDiv.classList.add('visible');
 
                     stimulusStartTime = performance.now();
 
-                    // Remove previous listeners
                     if (responseListener) document.removeEventListener('keydown', responseListener);
                     if (currentTrial.touchFHandler) touchButtonF.removeEventListener('click', currentTrial.touchFHandler);
                     if (currentTrial.touchJHandler) touchButtonJ.removeEventListener('click', currentTrial.touchJHandler);
 
-                    // Add keyboard listener
                     responseListener = (event) => handleKeyPress(event, currentTrial);
                     document.addEventListener('keydown', responseListener);
 
-                    // Add Touch Button Event Listeners
                     currentTrial.touchFHandler = () => handleKeyPress({ key: 'f' }, currentTrial);
                     touchButtonF.addEventListener('click', currentTrial.touchFHandler);
                     currentTrial.touchJHandler = () => handleKeyPress({ key: 'j' }, currentTrial);
                     touchButtonJ.addEventListener('click', currentTrial.touchJHandler);
 
-                    // Enable response buttons
                     touchButtonF.disabled = false;
                     touchButtonJ.disabled = false;
 
-                    // Start timeout
                     trialTimeoutId = setTimeout(() => { handleTimeout(currentTrial); }, MAX_RESPONSE_TIME);
 
                 } catch (error) { console.error(`Error in runTrial setTimeout:`, error); }
             }, FIXATION_DURATION);
         }
 
-        // *** FIX 3: Revised handleKeyPress for Visibility ***
         function handleKeyPress(event, trial) {
             if (results.some(r => r.trialIndex === currentTrialIndex)) return;
             const key = event.key.toLowerCase();
             if (key === 'f' || key === 'j') {
                 if (trialTimeoutId) clearTimeout(trialTimeoutId); trialTimeoutId = null;
 
-                // Remove Listeners
                 if (responseListener) document.removeEventListener('keydown', responseListener); responseListener = null;
                 if (trial.touchFHandler) touchButtonF.removeEventListener('click', trial.touchFHandler);
                 if (trial.touchJHandler) touchButtonJ.removeEventListener('click', trial.touchJHandler);
 
-                // Disable buttons
                 touchButtonF.disabled = true; touchButtonJ.disabled = true;
 
                 const reactionTime = performance.now() - stimulusStartTime;
@@ -532,19 +547,17 @@
                 const expectedKey = (['a', 'k'].includes(centerLower)) ? 'f' : (['l', 'r'].includes(centerLower) ? 'j' : '?');
                 const correct = key === expectedKey;
 
-                // Explicitly HIDE stimulus, fixation, controls before showing feedback
                 stimulusDiv.classList.remove('visible');
                 touchControlsDiv.classList.remove('visible');
-                fixationDiv.classList.remove('visible'); // Ensure fixation is hidden
+                fixationDiv.classList.remove('visible');
 
-                // Record Result
                 results.push({
                     participantId: participantData.id,
                     age: participantData.age,
                     gender: participantData.gender,
-                    group: participantData.group, // Store selected group
+                    group: participantData.group,
                     trialIndex: currentTrialIndex,
-                    stimulus: trial.stimulus_base, // Base stimulus string
+                    stimulus: trial.stimulus_base,
                     centerLetter: trial.centerLetter,
                     congruency: trial.condition_congruency,
                     noise: trial.condition_noise,
@@ -553,13 +566,11 @@
                     correctKey: expectedKey,
                     correct: correct ? 1 : 0,
                     latency_ms: reactionTime,
-                    timestamp: new Date().toISOString() // Add timestamp for the response
+                    timestamp: new Date().toISOString()
                 });
 
-                // Show feedback
                 showFeedback(correct ? "Correct" : "Incorrect");
 
-                // Schedule next trial
                 setTimeout(() => {
                     currentTrialIndex++;
                     runTrial(currentTrialIndex);
@@ -567,76 +578,64 @@
             }
         }
 
-        // *** FIX 3: Revised handleTimeout for Visibility ***
         function handleTimeout(trial) {
             console.warn(`Timeout occurred for trial ${currentTrialIndex}`);
             trialTimeoutId = null;
             if (results.some(r => r.trialIndex === currentTrialIndex)) return;
 
-            // Remove Listeners
             if (responseListener) document.removeEventListener('keydown', responseListener); responseListener = null;
             if (trial.touchFHandler) touchButtonF.removeEventListener('click', trial.touchFHandler);
             if (trial.touchJHandler) touchButtonJ.removeEventListener('click', trial.touchJHandler);
 
-            // Disable buttons
             touchButtonF.disabled = true; touchButtonJ.disabled = true;
 
-            // Explicitly HIDE stimulus, fixation, controls before showing feedback
             stimulusDiv.classList.remove('visible');
             touchControlsDiv.classList.remove('visible');
-            fixationDiv.classList.remove('visible'); // Ensure fixation is hidden
+            fixationDiv.classList.remove('visible');
 
-            // Record Timeout Result
             results.push({
-                    participantId: participantData.id,
-                    age: participantData.age,
-                    gender: participantData.gender,
-                    group: participantData.group, // Store selected group
-                    trialIndex: currentTrialIndex,
-                    stimulus: trial.stimulus_base,
-                    centerLetter: trial.centerLetter,
-                    congruency: trial.condition_congruency,
-                    noise: trial.condition_noise,
-                    spacing: trial.condition_spacing,
-                    response: 'timeout',
-                    correctKey: trial.correctKey,
-                    correct: 0,
-                    latency_ms: -1,
-                    timestamp: new Date().toISOString() // Add timestamp for the timeout event
-                });
+                participantId: participantData.id,
+                age: participantData.age,
+                gender: participantData.gender,
+                group: participantData.group,
+                trialIndex: currentTrialIndex,
+                stimulus: trial.stimulus_base,
+                centerLetter: trial.centerLetter,
+                congruency: trial.condition_congruency,
+                noise: trial.condition_noise,
+                spacing: trial.condition_spacing,
+                response: 'timeout',
+                correctKey: trial.correctKey,
+                correct: 0,
+                latency_ms: -1,
+                timestamp: new Date().toISOString()
+            });
 
-            // Show feedback
             showFeedback("Too Slow");
 
-            // Schedule next trial
             setTimeout(() => {
                 currentTrialIndex++;
                 runTrial(currentTrialIndex);
             }, FEEDBACK_DURATION + ITI);
         }
 
-        // *** FIX 3: Revised showFeedback for Visibility ***
         function showFeedback(message) {
-            feedbackDiv.textContent = ''; // Clear previous text
-            // Apply classes for styling based on message
+            feedbackDiv.textContent = '';
             if (message === "Correct") {
-                feedbackDiv.className = 'feedback visible correct'; // Base, visible, specific
-            } else { // Incorrect or Too Slow
-                feedbackDiv.className = 'feedback visible incorrect'; // Base, visible, specific
+                feedbackDiv.className = 'feedback visible correct';
+            } else {
+                feedbackDiv.className = 'feedback visible incorrect';
             }
-            feedbackDiv.textContent = message; // Set new text
-         }
+            feedbackDiv.textContent = message;
+        }
 
-        // *** FIX 5: Simplified Summary Display in endExperiment ***
         function endExperiment() {
             const experimentEndTime = performance.now();
             const totalElapsedTime_ms = experimentEndTime - experimentStartTime;
             console.log("Flanker Task ended. Calculating metrics...");
             taskDiv.classList.remove('active');
-            touchControlsDiv.classList.remove('visible'); // Ensure controls hidden
+            touchControlsDiv.classList.remove('visible');
 
-            // --- Calculate Summary Metrics ---
-             // Calculation logic remains the same...
             let correctCount = 0; let totalCorrectRT = 0; let correctRTs = [];
             let noiseYesCorrect = 0, noiseYesTotal = 0; let noiseNoCorrect = 0, noiseNoTotal = 0;
             let spacingSingleCorrect = 0, spacingSingleTotal = 0; let spacingDoubleCorrect = 0, spacingDoubleTotal = 0; let spacingTripleCorrect = 0, spacingTripleTotal = 0;
@@ -650,8 +649,8 @@
                     if (res.latency_ms !== -1) { totalCorrectRT += res.latency_ms; correctRTs.push(res.latency_ms); }
                     if (res.noise === 'yes') noiseYesCorrect++; else if (res.noise === 'no') noiseNoCorrect++;
                     if (res.spacing === 'single') spacingSingleCorrect++; else if (res.spacing === 'double') spacingDoubleCorrect++; else if (res.spacing === 'triple') spacingTripleCorrect++;
-                 }
-             });
+                }
+            });
             const totalTrials = results.length; const respondedTrials = totalTrials - timeoutCount;
             const overallAccuracy = totalTrials > 0 ? (correctCount / totalTrials) * 100 : 0;
             const accuracyResponded = respondedTrials > 0 ? (correctCount / respondedTrials) * 100 : 0;
@@ -668,26 +667,25 @@
             const accuracySpacingTriple = spacingTripleTotal > 0 ? (spacingTripleCorrect / spacingTripleTotal) * 100 : (spacingTripleTotal === 0 ? NaN : 0);
 
             summaryMetrics = {
-                 totalTaskTime_s: (totalElapsedTime_ms / 1000).toFixed(2),
-                 totalTrials: totalTrials, timeoutCount: timeoutCount,
-                 overallAccuracy: overallAccuracy.toFixed(2),
-                 overallErrorRate: overallErrorRate.toFixed(2),
-                 accuracyAmongResponded: accuracyResponded.toFixed(2),
-                 overallMeanRT_ms: overallMeanRT.toFixed(2),
-                 overallMedianRT_ms: overallMedianRT.toFixed(2),
-                 overallMinRT_ms: overallMinRT.toFixed(2),
-                 overallMaxRT_ms: overallMaxRT.toFixed(2),
-                 overallSDRT_ms: overallSDRT.toFixed(2),
-                 accuracyNoiseYes: isNaN(accuracyNoiseYes) ? 'N/A' : accuracyNoiseYes.toFixed(2),
-                 accuracyNoiseNo: isNaN(accuracyNoiseNo) ? 'N/A' : accuracyNoiseNo.toFixed(2),
-                 accuracySpacingSingle: isNaN(accuracySpacingSingle) ? 'N/A' : accuracySpacingSingle.toFixed(2),
-                 accuracySpacingDouble: isNaN(accuracySpacingDouble) ? 'N/A' : accuracySpacingDouble.toFixed(2),
-                 accuracySpacingTriple: isNaN(accuracySpacingTriple) ? 'N/A' : accuracySpacingTriple.toFixed(2),
-                 experimentEndTimeUTC: new Date().toISOString() // Add timestamp for experiment completion
-             };
+                totalTaskTime_s: (totalElapsedTime_ms / 1000).toFixed(2),
+                totalTrials: totalTrials, timeoutCount: timeoutCount,
+                overallAccuracy: overallAccuracy.toFixed(2),
+                overallErrorRate: overallErrorRate.toFixed(2),
+                accuracyAmongResponded: accuracyResponded.toFixed(2),
+                overallMeanRT_ms: overallMeanRT.toFixed(2),
+                overallMedianRT_ms: overallMedianRT.toFixed(2),
+                overallMinRT_ms: overallMinRT.toFixed(2),
+                overallMaxRT_ms: overallMaxRT.toFixed(2),
+                overallSDRT_ms: overallSDRT.toFixed(2),
+                accuracyNoiseYes: isNaN(accuracyNoiseYes) ? 'N/A' : accuracyNoiseYes.toFixed(2),
+                accuracyNoiseNo: isNaN(accuracyNoiseNo) ? 'N/A' : accuracyNoiseNo.toFixed(2),
+                accuracySpacingSingle: isNaN(accuracySpacingSingle) ? 'N/A' : accuracySpacingSingle.toFixed(2),
+                accuracySpacingDouble: isNaN(accuracySpacingDouble) ? 'N/A' : accuracySpacingDouble.toFixed(2),
+                accuracySpacingTriple: isNaN(accuracySpacingTriple) ? 'N/A' : accuracySpacingTriple.toFixed(2),
+                experimentEndTimeUTC: new Date().toISOString()
+            };
             console.log("Summary Metrics:", summaryMetrics);
 
-            // --- Display Simplified Summary ---
             summaryResultsDiv.innerHTML = `
                 <ul>
                     <li>Total Task Time: ${summaryMetrics.totalTaskTime_s} seconds</li>
@@ -697,10 +695,9 @@
                     <li>Accuracy (Responded Trials Only): ${summaryMetrics.accuracyAmongResponded}%</li>
                     <li>Mean Correct Latency (Responded Trials): ${summaryMetrics.overallMeanRT_ms} ms</li>
                     <li>Median Correct Latency (Responded Trials): ${summaryMetrics.overallMedianRT_ms} ms</li>
-                    </ul>`;
+                </ul>`;
             showScreen('summary');
 
-            // --- Prepare and Send Data to Google Sheet ---
             console.log("Preparing final data payload for Google Sheet...");
             const dataForSheet = {
                 eventType: 'experimentData',
@@ -710,33 +707,29 @@
             sendDataToSheetGoogle(dataForSheet);
         }
 
-        // convertToCSV function removed as requested
-
         // --- Restart Logic ---
-        restartBtn.addEventListener('click', () => { /* ... (no changes needed) ... */
-             participantData = {}; results = []; summaryMetrics = {}; currentTrialIndex = 0;
-             if (countdownIntervalId) clearInterval(countdownIntervalId); countdownIntervalId = null;
-             infoForm.reset(); participantIdInput.value = ''; ageInput.value = ''; genderInput.value = ''; selectedGroupInput.value = '';
-             group1Btn.classList.remove('selected'); group2Btn.classList.remove('selected'); group1Btn.disabled = false; group2Btn.disabled = false;
-             infoErrorDiv.textContent = ''; countdownError.textContent = '';
-             showScreen('instructions');
-         });
+        restartBtn.addEventListener('click', () => {
+            participantData = {}; results = []; summaryMetrics = {}; currentTrialIndex = 0;
+            if (countdownIntervalId) clearInterval(countdownIntervalId); countdownIntervalId = null;
+            infoForm.reset(); participantIdInput.value = ''; ageInput.value = ''; genderInput.value = ''; selectedGroupInput.value = '';
+            group1Btn.classList.remove('selected'); group2Btn.classList.remove('selected'); group1Btn.disabled = false; group2Btn.disabled = false;
+            infoErrorDiv.textContent = ''; countdownError.textContent = '';
+            showScreen('instructions');
+        });
 
         // --- Initial Setup ---
         infoErrorDiv.textContent = ''; countdownError.textContent = '';
 
         // --- Google Sheet Sending Function ---
-        function sendDataToSheetGoogle(payload) { /* ... (no changes needed) ... */
-          console.log("Attempting to send payload via fetch:", JSON.stringify(payload).substring(0, 500) + "...");
-          fetch(GOOGLE_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "application/json", }, body: JSON.stringify(payload), mode: 'no-cors' })
-          .then(() => { console.log("Payload submission fetch initiated (mode: no-cors). Check Google Sheet/Apps Script Logs."); })
-          .catch((error) => {
-            console.error("❌ Error initiating fetch to Google Sheet URL:", error);
-            if (payload.eventType === 'experimentData') { alert("A network error occurred while trying to send final data. Please check connection/console."); }
-          });
-       }
-
+        function sendDataToSheetGoogle(payload) {
+            console.log("Attempting to send payload via fetch:", JSON.stringify(payload).substring(0, 500) + "...");
+            fetch(GOOGLE_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "application/json", }, body: JSON.stringify(payload), mode: 'no-cors' })
+            .then(() => { console.log("Payload submission fetch initiated (mode: no-cors). Check Google Sheet/Apps Script Logs."); })
+            .catch((error) => {
+                console.error("❌ Error initiating fetch to Google Sheet URL:", error);
+                if (payload.eventType === 'experimentData') { alert("A network error occurred while trying to send final data. Please check connection/console."); }
+            });
+        }
     </script>
-
 </body>
 </html>
