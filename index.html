@@ -132,7 +132,7 @@
             <h2>Participant Information</h2>
             <form id="infoForm">
                 <div class="form-row">
-                    <label for="participantId">Create Participant ID (this is any 5 digit code you can create):</label>
+                    <label for="participantId">Create Participant ID (this can be any 5 digit code you create):</label>
                     <input type="text" id="participantId" name="participantId" required title="Enter any combination of letters/numbers">
                 </div>
                 <div class="form-row">
@@ -164,7 +164,7 @@
 
         <div id="eyesClosedScreen" class="screen">
             <h2>Resting Period</h2>
-            <p id="eyesClosedText">Please close your eyes for at least 3 minutes and only be an impartial observer thoughout the process. Do not act in meditation or any other techniques. </p>
+            <p id="eyesClosedText">Close your eyes for at least 3 minutes and only be an impartial observer thoughout the process. Do not act in meditation or any other techniques. </p>
             <div id="eyesClosedCountdown" style="display: none;">3:00</div>
             <button id="startCountdownBtn">Start Timer</button>
             <button id="continueAfterRestBtn" style="display: none;">Continue</button>
@@ -178,7 +178,7 @@
             <p>Your task is to identify the <strong>center letter</strong>.</p>
             <ul id="instructionListReminder">
                 <li>Press <strong>F</strong> on your keyboard OR tap the <strong>(F)</strong> button if the center letter is <strong>A</strong> or <strong>K</strong></li>
-                <li>Press <strong>J</strong> on your keyboard OR tap the <strong>(J)</strong> button if the center letter is <strong>L</strong> or <strong>R</strong></li>
+                <li>Press <strong>J</strong> on your keyboard OR tap the <strong>(J)</strong> button if the center letter is <strong>L</strong> or <strong>T</strong></li>
             </ul>
             <p>Please respond as quickly and accurately as possible.</p>
             <button id="startFlankerTaskBtn">Start Task</button>
@@ -317,7 +317,7 @@
 
         // --- Define Trials ---
         function setupTrials() {
-            const letters = { set1: ['A', 'K'], set2: ['L', 'R'] };
+            const letters = { set1: ['A', 'K'], set2: ['L', 'T'] };
             const conditions = {
                 congruency: ['congruent', 'incongruent', 'neutral'],
                 noise: ['no', 'yes'],
@@ -543,7 +543,7 @@
 
                 const reactionTime = performance.now() - stimulusStartTime;
                 const centerLower = trial.centerLetter.toLowerCase();
-                const expectedKey = (['a', 'k'].includes(centerLower)) ? 'f' : (['l', 'r'].includes(centerLower) ? 'j' : '?');
+                const expectedKey = (['a', 'k'].includes(centerLower)) ? 'f' : (['l', 't'].includes(centerLower) ? 'j' : '?');
                 const correct = key === expectedKey;
 
                 stimulusDiv.classList.remove('visible');
