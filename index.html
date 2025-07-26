@@ -151,13 +151,6 @@
                     </select>
                 </div>
 
-                <div id="groupSelection">
-                    <p>Please randomly select a group:</p>
-                    <button type="button" id="group1Btn" data-group="Group 1">Group 1</button>
-                    <button type="button" id="group2Btn" data-group="Group 2">Group 2</button>
-                    <input type="hidden" id="selectedGroup" name="selectedGroup" value="">
-                </div>
-
                 <button type="submit" id="submitInfoBtn">Continue</button>
                 <div id="infoError" class="error-message"></div>
             </form>
@@ -223,9 +216,6 @@
         const participantIdInput = document.getElementById('participantId');
         const ageInput = document.getElementById('age');
         const genderInput = document.getElementById('gender');
-        const group1Btn = document.getElementById('group1Btn');
-        const group2Btn = document.getElementById('group2Btn');
-        const selectedGroupInput = document.getElementById('selectedGroup');
         const submitInfoBtn = document.getElementById('submitInfoBtn');
         const infoErrorDiv = document.getElementById('infoError');
 
@@ -429,24 +419,34 @@
             infoErrorDiv.textContent = ''; // Clear any previous errors
         });
         
-        group1Btn.addEventListener('click', (e) => {
-            selectedGroupInput.value = e.target.dataset.group; group1Btn.classList.add('selected'); group2Btn.classList.remove('selected'); group1Btn.disabled = true; group2Btn.disabled = true; console.log("Group selected:", selectedGroupInput.value);
-        });
-        
-        group2Btn.addEventListener('click', (e) => {
-            selectedGroupInput.value = e.target.dataset.group; group2Btn.classList.add('selected'); group1Btn.classList.remove('selected'); group1Btn.disabled = true; group2Btn.disabled = true; console.log("Group selected:", selectedGroupInput.value);
-        });
-        
         infoForm.addEventListener('submit', (event) => {
-            event.preventDefault(); infoErrorDiv.textContent = '';
-            const id = participantIdInput.value.trim(); const age = ageInput.value; const gender = genderInput.value; const group = selectedGroupInput.value;
-            if (id && age && parseInt(age) > 0 && gender && group) {
-                participantData = { id: id, age: parseInt(age), gender: gender, group: group }; console.log("Participant Info Submitted:", participantData);
-                if (group === 'Group 1') { sendGroup1Notification(); }
-                showScreen('eyesClosedScreen'); startCountdownBtn.style.display = 'inline-block'; startCountdownBtn.disabled = false; continueAfterRestBtn.style.display = 'none'; eyesClosedCountdown.style.display = 'none'; eyesClosedCountdown.textContent = ''; countdownError.textContent = '';
-            } else {
-                let errorMsg = "Please correct the following: "; if (!id) errorMsg += "Participant ID is required. "; if (!age || parseInt(age) <= 0) errorMsg += "Valid age is required. "; if (!gender) errorMsg += "Gender selection is required. "; if (!group) errorMsg += "Group selection is required. "; infoErrorDiv.textContent = errorMsg.trim();
-            }
+        event.preventDefault(); infoErrorDiv.textContent = '';
+        const id = participantIdInput.value.trim(); const age = ageInput.value; const gender = genderInput.value;
+
+        // Check for all fields EXCEPT the group
+        if (id && age && parseInt(age) > 0 && gender) {
+        // Randomly assign group here
+        const assignedGroup = Math.random() < 0.5 ? 'Group 1' : 'Group 2';
+
+        participantData = { id: id, age: parseInt(age), gender: gender, group: assignedGroup }; 
+        console.log("Participant Info Submitted:", participantData);
+
+        if (assignedGroup === 'Group 1') { sendGroup1Notification(); }
+        showScreen('eyesClosedScreen'); 
+        startCountdownBtn.style.display = 'inline-block'; 
+        startCountdownBtn.disabled = false; 
+        continueAfterRestBtn.style.display = 'none'; 
+        eyesClosedCountdown.style.display = 'none'; 
+        eyesClosedCountdown.textContent = ''; 
+        countdownError.textContent = '';
+        } else {
+        // Updated error message (no longer checks for a group)
+        let errorMsg = "Please correct the following: "; 
+        if (!id) errorMsg += "Participant ID is required. "; 
+        if (!age || parseInt(age) <= 0) errorMsg += "Valid age is required. "; 
+        if (!gender) errorMsg += "Gender selection is required. "; 
+        infoErrorDiv.textContent = errorMsg.trim();
+        }
         });
         
         startCountdownBtn.addEventListener('click', () => {
